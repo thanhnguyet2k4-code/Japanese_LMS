@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="navbar">
+    <a th:href="@{/}">Japanese LMS</a>
+    |
+    <span th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+        <a th:href="@{/}">Trang quản trị</a>
+    </span>
+    <span th:if="${#authorization.expression('hasRole(''INSTRUCTOR'')')}">
+        <a th:href="@{/}">Khu vực giảng viên</a>
+    </span>
+    <span th:if="${#authorization.expression('hasRole(''STUDENT'')')}">
+        <a th:href="@{/}">Khu vực học viên</a>
+    </span>
+    |
+    <a th:href="@{/}">Trang chủ</a>
+    |
+    <form th:action="@{/logout}" method="post" style="display: inline;">
+        <button type="submit">Đăng xuất</button>
+    </form>
+</nav>
+</body>
+</html>
