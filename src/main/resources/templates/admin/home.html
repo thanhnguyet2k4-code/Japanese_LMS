@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan hệ thống - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-layout-page">
+
+<div class="admin-dashboard" layout:fragment="content">
+    <main class="dashboard-inner">
+
+        <!-- ====================================================================
+             1. TIÊU ĐỀ & LỜI CHÀO (Visual Hierarchy)
+             ==================================================================== -->
+        <header class="dashboard-header" aria-labelledby="dashboard-title">
+            <div class="header-content">
+                <span class="dashboard-eyebrow">KHU VỰC QUẢN TRỊ</span>
+                <h1 id="dashboard-title" class="dashboard-title">
+                    Tổng quan hệ thống
+                </h1>
+                <p class="dashboard-intro">
+                    Xin chào,
+                    <strong sec:authentication="name">Quản trị viên</strong>.
+                    Theo dõi hoạt động và điều hành hệ thống Japanese LMS tại đây.
+                </p>
+            </div>
+
+            <!-- Nút thao tác nhanh làm mới dữ liệu -->
+            <div class="header-actions">
+                <a th:href="@{/admin/home(refresh=true)}"
+                   class="btn-dashboard-action btn-refresh"
+                   title="Làm mới số liệu thống kê">
+                    <span aria-hidden="true">↻</span>
+                    <span>Làm mới</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- ====================================================================
+             TOAST NOTIFICATION PHẢN HỒI TRỰC TIẾP (Nguyên tắc 4 - Direct Feedback)
+             ==================================================================== -->
+        <div id="dashboardToast"
+             class="toast-notification"
+             th:classappend="${successMessage != null ? 'show toast-success' : (errorMessage != null ? 'show toast-error' : '')}"
+             role="alert"
+             aria-live="polite">
+            <div class="toast-icon" aria-hidden="true">
+                <span th:if="${successMessage}">✓</span>
+                <span th:if="${errorMessage}">⚠</span>
+            </div>
+            <div class="toast-body">
+                <p class="toast-title" th:text="${successMessage != null ? 'Thao tác thành công' : 'Thông báo'}">
+                    Thông báo
+                </p>
+                <p class="toast-message" th:text="${successMessage != null ? successMessage : errorMessage}">
+                    Nội dung thông báo
+                </p>
+            </div>
+            <button type="button" class="toast-close" onclick="closeToast()" aria-label="Đóng thông báo">×</button>
+            <div class="toast-progress"></div>
+        </div>
+
+        <!-- Thông báo lỗi khi tải Dashboard (Nguyên tắc 2 - Error State) -->
+        <div th:if="${dashboardStatus == 'ERROR'}"
+             class="dashboard-error-banner"
+             role="alert">
+            <span class="error-banner-icon" aria-hidden="true">⚠</span>
+            <div class="error-banner-text">
+                <strong>Không thể đồng bộ số liệu:</strong>
+                <span th:text="${errorMessage}">Đã xảy ra sự cố khi truy vấn cơ sở dữ liệu.</span>
+            </div>
+            <a th:href="@{/admin/home}" class="btn-retry">
+                Thử lại ↻
+            </a>
+        </div>
+
+        <!-- ====================================================================
+             2. CÁC THẺ THỐNG KÊ (STATS CARDS - Nguyên tắc 2 & 3: Clickable Area & 3 States)
+             ==================================================================== -->
+        <section class="dashboard-metrics" aria-label="Chỉ số tổng quan hệ thống">
+
+            <!-- Thẻ 1: Tổng người dùng (Clickable Card) -->
+            <a th:href="@{/admin/accounts}"
+               class="dashboard-surface stat-card stat-purple"
+               title="Nhấp để xem danh sách tài khoản">
+                <div class="stat-top">
+                    <span class="stat-label">Tổng người dùng</span>
+                    <span class="stat-icon" aria-hidden="true">👥</span>
+                </div>
+
+                <div class="stat-main">
+                    <!-- Trạng thái giá trị (Empty/Normal) -->
+                    <p class="stat-value"
+                       th:text="${totalUsers != null ? totalUsers : 0}">0</p>
+                    <span class="stat-badge"
+                          th:classappend="${totalUsers != null and totalUsers > 0 ? 'badge-active' : 'badge-empty'}">
+                        <span th:text="${totalUsers != null and totalUsers > 0 ? 'Đang hoạt động' : 'Chưa có tài khoản'}">0</span>
+                    </span>
+                </div>
+
+                <div class="stat-footer">
+                    <span class="stat-note">Tất cả tài khoản trong hệ thống</span>
+                    <span class="stat-arrow" aria-hidden="true">→</span>
+                </div>
+            </a>
+
+            <!-- Thẻ 2: Yêu cầu chờ duyệt (Clickable Card) -->
+            <a th:href="@{/admin/registrations}"
+               class="dashboard-surface stat-card stat-amber"
+               title="Nhấp để xử lý yêu cầu đăng ký">
+                <div class="stat-top">
+                    <span class="stat-label">Yêu cầu chờ duyệt</span>
+                    <span class="stat-icon" aria-hidden="true">📝</span>
+                </div>
+
+                <div class="stat-main">
+                    <p class="stat-value"
+                       th:text="${pendingRegistrationsCount != null ? pendingRegistrationsCount : 0}">0</p>
+                    <span class="stat-badge"
+                          th:classappend="${pendingRegistrationsCount != null and pendingRegistrationsCount > 0 ? 'badge-pending' : 'badge-done'}">
+                        <span th:text="${pendingRegistrationsCount != null and pendingRegistrationsCount > 0 ? 'Cần xử lý' : 'Đã duyệt hết'}">Đã duyệt</span>
+                    </span>
+                </div>
+
+                <div class="stat-footer">
+                    <span class="stat-note">Tài khoản học viên mới đăng ký</span>
+                    <span class="stat-arrow" aria-hidden="true">→</span>
+                </div>
+            </a>
+
+            <!-- Thẻ 3: Khóa học hoạt động (Clickable Card) -->
+            <a th:href="@{/admin/home}"
+               class="dashboard-surface stat-card stat-green"
+               title="Nhấp để xem danh sách khóa học">
+                <div class="stat-top">
+                    <span class="stat-label">Khóa học hoạt động</span>
+                    <span class="stat-icon" aria-hidden="true">📚</span>
+                </div>
+
+                <div class="stat-main">
+                    <p class="stat-value"
+                       th:text="${activeCoursesCount != null ? activeCoursesCount : 0}">0</p>
+                    <span class="stat-badge badge-neutral">
+                        <span th:text="${activeCoursesCount != null and activeCoursesCount > 0 ? 'Đang mở' : 'Chưa có khóa'}">Chưa có khóa</span>
+                    </span>
+                </div>
+
+                <div class="stat-footer">
+                    <span class="stat-note">Tổng số khóa học đang giảng dạy</span>
+                    <span class="stat-arrow" aria-hidden="true">→</span>
+                </div>
+            </a>
+
+            <!-- Thẻ 4: Bài nộp chờ chấm (Clickable Card) -->
+            <a th:href="@{/admin/home}"
+               class="dashboard-surface stat-card stat-red"
+               title="Nhấp để xem danh sách bài nộp">
+                <div class="stat-top">
+                    <span class="stat-label">Bài nộp chờ chấm</span>
+                    <span class="stat-icon" aria-hidden="true">✍</span>
+                </div>
+
+                <div class="stat-main">
+                    <p class="stat-value"
+                       th:text="${pendingGradingCount != null ? pendingGradingCount : 0}">0</p>
+                    <span class="stat-badge"
+                          th:classappend="${pendingGradingCount != null and pendingGradingCount > 0 ? 'badge-pending' : 'badge-done'}">
+                        <span th:text="${pendingGradingCount != null and pendingGradingCount > 0 ? 'Chờ đánh giá' : 'Đã hoàn tất'}">Đã hoàn tất</span>
+                    </span>
+                </div>
+
+                <div class="stat-footer">
+                    <span class="stat-note">Bài tập học viên đã nộp</span>
+                    <span class="stat-arrow" aria-hidden="true">→</span>
+                </div>
+            </a>
+
+        </section>
+
+        <!-- ====================================================================
+             3. TÁC VỤ CẦN XỬ LÝ (QUICK ACTIONS - Nguyên tắc 1: Tách nút Trang chủ)
+             Chỉ giữ lại 3 tác vụ quản trị trọng tâm: Duyệt đăng ký, Quản lý tài khoản, Hồ sơ cá nhân
+             ==================================================================== -->
+        <section class="dashboard-section" aria-labelledby="actions-heading">
+            <div class="section-title-wrap">
+                <h2 id="actions-heading" class="dashboard-section-title">
+                    Tác vụ quản trị trọng tâm
+                </h2>
+                <span class="section-subtitle">Thao tác điều hành được sử dụng thường xuyên</span>
+            </div>
+
+            <div class="dashboard-actions-grid">
+
+                <!-- Tác vụ 1: Duyệt đăng ký -->
+                <a th:href="@{/admin/registrations}"
+                   class="dashboard-surface action-tile action-amber"
+                   title="Xem danh sách đơn đăng ký học viên">
+                    <div class="action-tile-icon" aria-hidden="true">✓</div>
+                    <div class="action-tile-content">
+                        <strong class="action-tile-title">Duyệt đăng ký</strong>
+                        <p class="action-tile-desc">
+                            Kiểm tra và phê duyệt hoặc từ chối các yêu cầu mở tài khoản học viên mới.
+                        </p>
+                        <span class="action-tile-meta"
+                              th:if="${pendingRegistrationsCount != null and pendingRegistrationsCount > 0}">
+                            <strong th:text="${pendingRegistrationsCount}">1</strong> yêu cầu đang chờ
+                        </span>
+                    </div>
+                    <span class="action-tile-arrow" aria-hidden="true">→</span>
+                </a>
+
+                <!-- Tác vụ 2: Quản lý tài khoản -->
+                <a th:href="@{/admin/accounts}"
+                   class="dashboard-surface action-tile action-purple"
+                   title="Quản lý danh sách người dùng">
+                    <div class="action-tile-icon" aria-hidden="true">👥</div>
+                    <div class="action-tile-content">
+                        <strong class="action-tile-title">Quản lý tài khoản</strong>
+                        <p class="action-tile-desc">
+                            Tìm kiếm, phân quyền giảng viên/học viên, chỉnh sửa hoặc khóa tài khoản vi phạm.
+                        </p>
+                        <span class="action-tile-meta">
+                            <strong th:text="${totalUsers != null ? totalUsers : 0}">0</strong> tài khoản hệ thống
+                        </span>
+                    </div>
+                    <span class="action-tile-arrow" aria-hidden="true">→</span>
+                </a>
+
+                <!-- Tác vụ 3: Hồ sơ cá nhân -->
+                <a th:href="@{/profile}"
+                   class="dashboard-surface action-tile action-blue"
+                   title="Xem và chỉnh sửa hồ sơ quản trị">
+                    <div class="action-tile-icon" aria-hidden="true">⚙</div>
+                    <div class="action-tile-content">
+                        <strong class="action-tile-title">Hồ sơ cá nhân</strong>
+                        <p class="action-tile-desc">
+                            Cập nhật thông tin quản trị viên, email liên hệ và đổi mật khẩu bảo mật tài khoản.
+                        </p>
+                        <span class="action-tile-meta">Bảo mật & Cài đặt</span>
+                    </div>
+                    <span class="action-tile-arrow" aria-hidden="true">→</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ====================================================================
+             4. DỮ LIỆU & PHÂN TÍCH (Bảng đăng ký & Phân bổ JLPT)
+             ==================================================================== -->
+        <section class="dashboard-section" aria-labelledby="analytics-heading">
+            <div class="section-title-wrap">
+                <h2 id="analytics-heading" class="dashboard-section-title">
+                    Dữ liệu và phân tích
+                </h2>
+                <span class="section-subtitle">Theo dõi trạng thái học viên và phân bổ khóa học</span>
+            </div>
+
+            <div class="dashboard-columns">
+
+                <!-- Cột trái: Bảng đăng ký mới nhất chờ duyệt -->
+                <article id="pending-requests" class="dashboard-surface dashboard-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title">Đăng ký mới nhất chờ duyệt</h3>
+                            <p class="panel-desc">Danh sách học viên đăng ký cần xét duyệt tài khoản</p>
+                        </div>
+
+                        <a th:href="@{/admin/registrations}"
+                           class="btn-panel-action"
+                           title="Xem toàn bộ danh sách yêu cầu đăng ký">
+                            <span>Xem tất cả</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+
+                    <div class="dashboard-table-wrapper">
+                        <table class="dashboard-table" aria-label="Bảng danh sách học viên chờ duyệt">
+                            <thead>
+                            <tr>
+                                <th scope="col">Họ tên</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Ngày đăng ký</th>
+                                <th scope="col" class="th-actions">Thao tác</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <!-- Dữ liệu từng học viên -->
+                            <tr th:each="student : ${pendingStudents}">
+                                <td>
+                                    <div class="student-cell">
+                                        <div class="student-avatar" aria-hidden="true"
+                                             th:text="${student.fullName != null and !student.fullName.isEmpty() ? #strings.substring(student.fullName, 0, 1) : 'U'}">
+                                            N
+                                        </div>
+                                        <div class="student-info">
+                                            <strong class="student-name" th:text="${student.fullName}">Họ tên</strong>
+                                            <span class="student-role">Học viên</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="student-email" th:text="${student.email}">student@example.com</span>
+                                </td>
+
+                                <td>
+                                    <span class="student-date"
+                                          th:if="${student.createdAt != null}"
+                                          th:text="${#temporals.format(student.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                        25/10/2026 14:30
+                                    </span>
+                                    <span class="student-date text-muted" th:if="${student.createdAt == null}">—</span>
+                                </td>
+
+                                <td class="td-actions">
+                                    <div class="row-actions">
+                                        <button type="button"
+                                                class="btn-row-approve"
+                                                th:attr="data-id=${student.userId}, data-name=${student.fullName}"
+                                                onclick="openQuickApprove(this)"
+                                                title="Phê duyệt tài khoản này">
+                                            Duyệt
+                                        </button>
+                                        <button type="button"
+                                                class="btn-row-reject"
+                                                th:attr="data-id=${student.userId}, data-name=${student.fullName}"
+                                                onclick="openQuickReject(this)"
+                                                title="Từ chối yêu cầu này">
+                                            Từ chối
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Trạng thái RỖNG (Empty State) thu gọn chiều cao tối thiểu - Nguyên tắc 2 -->
+                            <tr th:if="${pendingStudents == null or #lists.isEmpty(pendingStudents)}">
+                                <td colspan="4" class="table-compact-empty">
+                                    <div class="empty-state-box">
+                                        <div class="empty-icon-circle" aria-hidden="true">✓</div>
+                                        <strong class="empty-state-title">Không có yêu cầu đăng ký nào chờ duyệt</strong>
+                                        <p class="empty-state-sub">
+                                            Tất cả học viên đã được phê duyệt hoặc chưa có yêu cầu mới.
+                                        </p>
+                                        <a th:href="@{/admin/registrations}" class="empty-link-history">
+                                            Xem lịch sử yêu cầu đã xử lý →
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <!-- Cột phải: Phân bổ khóa học theo JLPT (Sửa lỗi 0% & Thêm Empty State) -->
+                <article class="dashboard-surface dashboard-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title">Phân bố khóa học JLPT</h3>
+                            <p class="panel-desc">Tỷ lệ các khóa học theo từng trình độ</p>
+                        </div>
+                        <span class="panel-stat-pill"
+                              th:text="${(activeCoursesCount != null ? activeCoursesCount : 0) + ' khóa'}">
+                            0 khóa
+                        </span>
+                    </div>
+
+                    <!-- TRẠNG THÁI RỖNG (EMPTY STATE) KHI KHÔNG CÓ KHÓA HỌC - Nguyên tắc 2 -->
+                    <div th:if="${activeCoursesCount == null or activeCoursesCount == 0}"
+                         class="jlpt-empty-state">
+                        <div class="jlpt-empty-icon" aria-hidden="true">📚</div>
+                        <h4 class="jlpt-empty-title">Chưa có dữ liệu khóa học JLPT</h4>
+                        <p class="jlpt-empty-desc">
+                            Hệ thống hiện chưa có khóa học nào đang mở. Hãy khởi tạo khóa học đầu tiên để kích hoạt biểu đồ phân bổ.
+                        </p>
+                        <a th:href="@{/admin/home}"
+                           class="btn-create-course"
+                           title="Thêm khóa học mới vào hệ thống">
+                            <span aria-hidden="true">+</span>
+                            <span>Thêm khóa học mới</span>
+                        </a>
+                    </div>
+
+                    <!-- HIỂN THỊ KHI CÓ DỮ LIỆU KHÓA HỌC (Logic % chuẩn xác, không bị kéo dài khi 0) -->
+                    <div th:if="${activeCoursesCount != null and activeCoursesCount > 0}"
+                         class="jlpt-levels-wrap">
+
+                        <!-- Trình độ N5 -->
+                        <div class="level-item">
+                            <div class="level-meta">
+                                <div class="level-name-group">
+                                    <span class="level-badge badge-n5">N5</span>
+                                    <span class="level-title">Cơ bản</span>
+                                </div>
+                                <span class="level-count">
+                                    <strong th:text="${n5CourseCount != null ? n5CourseCount : 0}">0</strong> khóa
+                                    <span class="level-pct text-muted"
+                                          th:text="'(' + (${n5Percentage != null ? n5Percentage : 0}) + '%)'">(0%)</span>
+                                </span>
+                            </div>
+                            <div class="level-track" role="progressbar"
+                                 aria-label="Tỷ lệ khóa học N5"
+                                 aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${n5Percentage != null ? n5Percentage : 0}">
+                                <!-- width = 0% nếu không có khóa học -->
+                                <div class="level-fill fill-n5"
+                                     th:style="'width: ' + (${n5Percentage != null ? n5Percentage : 0}) + '%;'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trình độ N4 -->
+                        <div class="level-item">
+                            <div class="level-meta">
+                                <div class="level-name-group">
+                                    <span class="level-badge badge-n4">N4</span>
+                                    <span class="level-title">Sơ cấp</span>
+                                </div>
+                                <span class="level-count">
+                                    <strong th:text="${n4CourseCount != null ? n4CourseCount : 0}">0</strong> khóa
+                                    <span class="level-pct text-muted"
+                                          th:text="'(' + (${n4Percentage != null ? n4Percentage : 0}) + '%)'">(0%)</span>
+                                </span>
+                            </div>
+                            <div class="level-track" role="progressbar"
+                                 aria-label="Tỷ lệ khóa học N4"
+                                 aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${n4Percentage != null ? n4Percentage : 0}">
+                                <div class="level-fill fill-n4"
+                                     th:style="'width: ' + (${n4Percentage != null ? n4Percentage : 0}) + '%;'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trình độ N3 -->
+                        <div class="level-item">
+                            <div class="level-meta">
+                                <div class="level-name-group">
+                                    <span class="level-badge badge-n3">N3</span>
+                                    <span class="level-title">Trung cấp</span>
+                                </div>
+                                <span class="level-count">
+                                    <strong th:text="${n3CourseCount != null ? n3CourseCount : 0}">0</strong> khóa
+                                    <span class="level-pct text-muted"
+                                          th:text="'(' + (${n3Percentage != null ? n3Percentage : 0}) + '%)'">(0%)</span>
+                                </span>
+                            </div>
+                            <div class="level-track" role="progressbar"
+                                 aria-label="Tỷ lệ khóa học N3"
+                                 aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${n3Percentage != null ? n3Percentage : 0}">
+                                <div class="level-fill fill-n3"
+                                     th:style="'width: ' + (${n3Percentage != null ? n3Percentage : 0}) + '%;'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="jlpt-calc-note">
+                            * Tỷ lệ phần trăm được tính tự động từ số lượng khóa học đang hoạt động trong hệ thống.
+                        </p>
+                    </div>
+
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ====================================================================
+     5. MODAL XÁC NHẬN THAO TÁC QUẢN TRỊ (Nguyên tắc 6 - Error Tolerance)
+     Modal Phê duyệt & Từ chối an toàn kèm CSRF Token
+     ==================================================================== -->
+
+<!-- Modal Xác nhận Phê duyệt Nhanh -->
+<dialog id="quickApproveModal" class="confirm-modal" aria-labelledby="approveModalTitle">
+    <div class="modal-card">
+        <div class="modal-header modal-header-success">
+            <span class="modal-icon" aria-hidden="true">✓</span>
+            <h3 id="approveModalTitle" class="modal-title">Xác nhận phê duyệt học viên</h3>
+        </div>
+
+        <div class="modal-body">
+            <p>
+                Bạn có chắc chắn muốn phê duyệt tài khoản của học viên
+                <strong id="approveStudentNameDisplay">...</strong>?
+            </p>
+            <div class="modal-notice-box notice-success">
+                Sau khi phê duyệt, tài khoản học viên sẽ được kích hoạt để đăng nhập vào Japanese LMS.
+            </div>
+        </div>
+
+        <form id="quickApproveForm" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="modal-actions">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeQuickApprove()">
+                    Hủy bỏ
+                </button>
+                <button type="submit" class="btn-modal btn-modal-confirm btn-modal-success">
+                    Xác nhận duyệt
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Modal Xác nhận Từ chối Nhanh -->
+<dialog id="quickRejectModal" class="confirm-modal" aria-labelledby="rejectModalTitle">
+    <div class="modal-card">
+        <div class="modal-header modal-header-danger">
+            <span class="modal-icon" aria-hidden="true">⚠</span>
+            <h3 id="rejectModalTitle" class="modal-title">Xác nhận từ chối đăng ký</h3>
+        </div>
+
+        <form id="quickRejectForm" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="modal-body">
+                <p>
+                    Bạn đang từ chối yêu cầu đăng ký của
+                    <strong id="rejectStudentNameDisplay">...</strong>.
+                </p>
+
+                <div class="form-group-modal">
+                    <label for="rejectReviewNote" class="modal-field-label">
+                        Lý do từ chối (Tùy chọn ghi chú kiểm toán):
+                    </label>
+                    <textarea id="rejectReviewNote"
+                              name="reviewNote"
+                              rows="3"
+                              class="modal-textarea"
+                              placeholder="Nhập lý do từ chối để lưu vào lịch sử xét duyệt..."></textarea>
+                </div>
+
+                <div class="modal-notice-box notice-danger">
+                    Học viên sẽ không thể đăng nhập bằng tài khoản này. Hành động này được lưu vào nhật ký quản trị.
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeQuickReject()">
+                    Hủy bỏ
+                </button>
+                <button type="submit" class="btn-modal btn-modal-confirm btn-modal-danger">
+                    Xác nhận từ chối
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- ====================================================================
+     6. JAVASCRIPT HỖ TRỢ MICRO-INTERACTIONS & ACCESSIBILITY
+     ==================================================================== -->
+<script>
+    // Xử lý Toast Notification
+    function closeToast() {
+        const toast = document.getElementById('dashboardToast');
+        if (toast) {
+            toast.classList.remove('show');
+        }
+    }
+
+    // Tự động đóng Toast sau 4.5 giây
+    document.addEventListener('DOMContentLoaded', function () {
+        const toast = document.getElementById('dashboardToast');
+        if (toast && toast.classList.contains('show')) {
+            setTimeout(closeToast, 4500);
+        }
+    });
+
+    // Mở Modal Phê duyệt Nhanh
+    function openQuickApprove(button) {
+        const studentId = button.dataset.id;
+        const studentName = button.dataset.name || 'Học viên';
+
+        document.getElementById('approveStudentNameDisplay').textContent = studentName;
+        document.getElementById('quickApproveForm').action = '/admin/registrations/' + encodeURIComponent(studentId) + '/approve';
+
+        const modal = document.getElementById('quickApproveModal');
+        if (modal) {
+            modal.showModal();
+        }
+    }
+
+    function closeQuickApprove() {
+        const modal = document.getElementById('quickApproveModal');
+        if (modal) {
+            modal.close();
+        }
+    }
+
+    // Mở Modal Từ chối Nhanh
+    function openQuickReject(button) {
+        const studentId = button.dataset.id;
+        const studentName = button.dataset.name || 'Học viên';
+
+        document.getElementById('rejectStudentNameDisplay').textContent = studentName;
+        document.getElementById('quickRejectForm').action = '/admin/registrations/' + encodeURIComponent(studentId) + '/reject';
+        document.getElementById('rejectReviewNote').value = '';
+
+        const modal = document.getElementById('quickRejectModal');
+        if (modal) {
+            modal.showModal();
+        }
+    }
+
+    function closeQuickReject() {
+        const modal = document.getElementById('quickRejectModal');
+        if (modal) {
+            modal.close();
+        }
+    }
+
+    // Đóng Modal khi click ngoài vùng modal card
+    document.querySelectorAll('.confirm-modal').forEach(dialog => {
+        dialog.addEventListener('click', function (e) {
+            if (e.target === dialog) {
+                dialog.close();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý tài khoản - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-accounts-page">
+<header class="header">
+    <h1>Japanese LMS | Quản trị</h1>
+    <a th:href="@{/admin}">← Trang quản trị</a>
+</header>
+
+<main>
+    <div class="breadcrumb">
+        <a th:href="@{/admin}">Trang quản trị</a>
+        / Quản lý tài khoản người dùng
+    </div>
+
+    <section class="page-heading">
+        <div>
+            <h2>Quản lý tài khoản người dùng</h2>
+            <p class="description">
+                Tìm kiếm, lọc và theo dõi tài khoản trong hệ thống.
+            </p>
+        </div>
+
+        <a class="button button-primary"
+           th:href="@{/admin/accounts/new}">
+            + Tạo tài khoản mới
+        </a>
+    </section>
+
+    <!-- Thong bao thanh cong -->
+    <div class="message"
+         th:if="${successMessage != null}"
+         th:text="${successMessage}">
+    </div>
+
+    <!-- Thong bao that bai -->
+    <div class="message"
+         th:if="${errorMessage != null}"
+         th:text="${errorMessage}">
+    </div>
+
+    <div class="card">
+        <form th:action="@{/admin/accounts}"
+              method="get"
+              class="filters">
+
+            <div class="field">
+                <label for="keyword">Tìm kiếm</label>
+                <input id="keyword"
+                       type="text"
+                       name="keyword"
+                       placeholder="Nhập họ tên hoặc email..."
+                       th:value="${keyword}">
+            </div>
+
+            <div class="field">
+                <label for="role">Vai trò</label>
+                <select id="role" name="role">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="STUDENT"
+                            th:selected="${selectedRole == 'STUDENT'}">
+                        Học viên
+                    </option>
+                    <option value="INSTRUCTOR"
+                            th:selected="${selectedRole == 'INSTRUCTOR'}">
+                        Giảng viên
+                    </option>
+                    <option value="ADMIN"
+                            th:selected="${selectedRole == 'ADMIN'}">
+                        Quản trị viên
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="status">Trạng thái hoạt động</label>
+                <select id="status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="ACTIVE"
+                            th:selected="${selectedStatus == 'ACTIVE'}">
+                        Đang hoạt động
+                    </option>
+                    <option value="INACTIVE"
+                            th:selected="${selectedStatus == 'INACTIVE'}">
+                        Ngừng hoạt động
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit"
+                        class="button button-primary">
+                    Tìm kiếm
+                </button>
+
+                <a th:href="@{/admin/accounts}"
+                   class="button button-light">
+                    Đặt lại
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <section class="card">
+        <div class="page-heading">
+            <div>
+                <h2>Danh sách tài khoản</h2>
+                <p class="description">
+                    Tổng số:
+                    <strong th:text="${totalElements}">0</strong>
+                    tài khoản
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Trạng thái duyệt</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="account, stat : ${accounts}">
+                    <td th:text="${currentPage * 10 + stat.index + 1}">
+                        1
+                    </td>
+
+                    <td class="account-name"
+                        th:text="${account.fullName}">
+                        Nguyễn Văn A
+                    </td>
+
+                    <td th:text="${account.email}">
+                        example@email.com
+                    </td>
+
+                    <td th:text="${account.phone != null
+                                  ? account.phone : '—'}">
+                        0900000000
+                    </td>
+
+                    <td>
+                        <span class="badge role"
+                              th:switch="${account.role}">
+                            <span th:case="'STUDENT'">Học viên</span>
+                            <span th:case="'INSTRUCTOR'">Giảng viên</span>
+                            <span th:case="'ADMIN'">Quản trị viên</span>
+                            <span th:case="*"
+                                  th:text="${account.role}">Khác</span>
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="badge"
+                              th:classappend="${account.active}
+                                  ? ' active' : ' inactive'"
+                              th:text="${account.active}
+                                  ? 'Đang hoạt động' : 'Ngừng hoạt động'">
+                            Đang hoạt động
+                        </span>
+                    </td>
+
+                    <td th:text="${account.accountStatus}">
+                        APPROVED
+                    </td>
+
+                    <td>
+                        <a class="button button-light"
+                           th:href="@{/admin/accounts/{id}/edit(id=${account.userId})}">
+                            Sửa
+                        </a>
+
+                        <form th:if="${account.active}"
+                              th:action="@{/admin/accounts/{id}/toggle(id=${account.userId})}"
+                              method="post"
+                              style="display: inline;"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn khóa tài khoản này?');">
+
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    th:disabled="${#authentication.name == account.email
+                    or (account.role == 'ADMIN'
+                    and activeAdminCount == 1)}"
+                                    th:title="${#authentication.name == account.email
+                    ? 'Không thể tự khóa tài khoản đang đăng nhập'
+                    : (account.role == 'ADMIN' and activeAdminCount == 1
+                    ? 'Không thể khóa Admin cuối cùng đang hoạt động'
+                    : 'Khóa tài khoản')}">
+                                Khóa
+                            </button>
+                        </form>
+
+                        <form th:unless="${account.active}"
+                              th:action="@{/admin/accounts/{id}/toggle(id=${account.userId})}"
+                              method="post"
+                              style="display: inline;"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?');">
+
+                            <button type="submit" class="btn btn-success">
+                                Mở khóa
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(accounts)}">
+                    <td colspan="8" class="empty">
+                        Không tìm thấy tài khoản phù hợp.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination"
+             th:if="${totalPages > 0}">
+            <span>
+                Trang <strong th:text="${currentPage + 1}">1</strong>
+                / <strong th:text="${totalPages}">1</strong>
+            </span>
+
+            <div class="page-links">
+                <a th:classappend="${currentPage == 0}
+                    ? ' disabled' : ''"
+                   th:href="@{/admin/accounts(
+                       keyword=${keyword},
+                       role=${selectedRole},
+                       status=${selectedStatus},
+                       page=${currentPage - 1})}">
+                    ← Trước
+                </a>
+
+                <a th:classappend="${currentPage + 1 >= totalPages}
+                    ? ' disabled' : ''"
+                   th:href="@{/admin/accounts(
+                       keyword=${keyword},
+                       role=${selectedRole},
+                       status=${selectedStatus},
+                       page=${currentPage + 1})}">
+                    Sau →
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
+</footer>
+</body>
+</html>

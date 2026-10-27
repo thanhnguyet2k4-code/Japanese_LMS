@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Không tìm thấy trang | Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<main>
+    <section class="error-page">
+        <p class="error-code">404</p>
+        <div class="error-decoration"></div>
+
+        <h1 class="error-title">Không tìm thấy trang</h1>
+
+        <p class="error-message">
+            Địa chỉ bạn truy cập không tồn tại hoặc trang đã được thay đổi.
+            Hãy kiểm tra lại đường dẫn hoặc quay về trang chủ.
+        </p>
+
+        <a th:href="@{/}" class="btn btn-primary">
+            Quay về trang chủ
+        </a>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Japanese LMS - Quản trị</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <th:block layout:fragment="head"></th:block>
+</head>
+
+<body class="admin-layout-page">
+
+<div class="admin-layout" id="adminLayout">
+
+    <!-- SIDEBAR BÊN TRÁI: Tuân thủ Nguyên tắc 1 & 5 (Hierarchy & Color System) -->
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="Menu quản trị hệ thống">
+
+        <!-- Header Sidebar -->
+        <div class="sidebar-heading">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-mark" aria-hidden="true">日</span>
+                <div class="sidebar-brand-info">
+                    <h2>Japanese LMS</h2>
+                    <p>KHU VỰC QUẢN TRỊ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Sidebar: Trạng thái Active rõ ràng (Nguyên tắc 1 - Hierarchy) -->
+        <nav class="sidebar-menu">
+            <!-- Mục Tổng quan (Active state với vạch accent bên trái) -->
+            <a th:href="@{/admin/home}"
+               th:classappend="${currentTab == 'home' or currentTab == null ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'home' or currentTab == null ? 'page' : null}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">📊</span>
+                <span class="sidebar-item-text">Tổng quan</span>
+            </a>
+
+            <!-- Mục Yêu cầu đăng ký (Kèm badge đếm số lượng) -->
+            <a th:href="@{/admin/registrations}"
+               th:classappend="${currentTab == 'registrations' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'registrations' ? 'page' : null}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">📝</span>
+                <span class="sidebar-item-text">Yêu cầu đăng ký</span>
+                <span th:if="${unreadNotificationsCount != null and unreadNotificationsCount > 0}"
+                      class="sidebar-count-badge"
+                      th:text="${unreadNotificationsCount}">1</span>
+            </a>
+
+            <!-- Mục Quản lý tài khoản -->
+            <a th:href="@{/admin/accounts}"
+               th:classappend="${currentTab == 'accounts' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'accounts' ? 'page' : null}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">👥</span>
+                <span class="sidebar-item-text">Quản lý tài khoản</span>
+            </a>
+
+            <!-- Mục Hồ sơ cá nhân -->
+            <a th:href="@{/profile}"
+               th:classappend="${currentTab == 'profile' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">👤</span>
+                <span class="sidebar-item-text">Hồ sơ cá nhân</span>
+            </a>
+        </nav>
+
+        <!-- Chân Sidebar: Liên kết phụ về Trang chủ người dùng (Nguyên tắc 1 - Hierarchy) -->
+        <div class="sidebar-bottom">
+            <a th:href="@{/}" class="sidebar-portal-link" title="Quay lại giao diện người dùng">
+                <span class="portal-link-icon" aria-hidden="true">⌂</span>
+                <span>Về trang chủ học viên</span>
+            </a>
+            <div class="sidebar-version-tag">
+                <span>Japanese LMS v1.0</span>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- TOÀN BỘ PHẦN BÊN PHẢI SIDEBAR -->
+    <div class="admin-right">
+
+        <!-- Topbar Header -->
+        <header th:replace="~{fragments/navbar :: navbar}">
+        </header>
+
+        <!-- Nội dung từng trang quản trị -->
+        <main class="admin-main">
+            <div class="admin-content" layout:fragment="content">
+                <p>Nội dung trang quản trị sẽ hiển thị tại đây.</p>
+            </div>
+        </main>
+
+        <!-- Chân trang quản trị -->
+        <footer th:replace="~{fragments/footer :: footer}">
+        </footer>
+
+    </div>
+
+</div>
+
+<!-- Script quản lý Toggle Sidebar & Phím tắt tìm kiếm Ctrl+K (Nguyên tắc 3 - Frictionless UX) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleButton = document.getElementById('adminSidebarToggle');
+        const layout = document.getElementById('adminLayout');
+
+        if (toggleButton && layout) {
+            toggleButton.addEventListener('click', function () {
+                const isCollapsed = layout.classList.toggle('sidebar-collapsed');
+                toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+            });
+        }
+
+        // Hỗ trợ phím tắt Ctrl + K để focus nhanh vào ô tìm kiếm
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                const searchInput = document.querySelector('.admin-search input');
+                if (searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

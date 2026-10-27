@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="profile-page">
+<div class="container">
+
+    <h1>Hồ sơ cá nhân</h1>
+    <p class="subtitle">
+        Xem và cập nhật thông tin tài khoản Japanese LMS.
+    </p>
+
+    <div class="message success"
+         th:if="${successMessage != null}"
+         th:text="${successMessage}">
+    </div>
+
+    <div class="message error"
+         th:if="${errorMessage != null}"
+         th:text="${errorMessage}">
+    </div>
+
+    <!-- Thong tin ca nhan -->
+    <section class="card">
+        <h2>Thông tin cá nhân</h2>
+
+        <form th:action="@{/profile}" method="post">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="fullName">Họ và tên</label>
+                <input id="fullName"
+                       name="fullName"
+                       type="text"
+                       maxlength="100"
+                       required
+                       th:value="${user.fullName}">
+            </div>
+
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email"
+                       type="email"
+                       readonly
+                       th:value="${user.email}">
+            </div>
+
+            <div class="field">
+                <label for="phone">Số điện thoại</label>
+                <input id="phone"
+                       name="phone"
+                       type="text"
+                       maxlength="20"
+                       th:value="${user.phone}">
+            </div>
+
+            <div class="field">
+                <label>Vai trò</label>
+                <input type="text"
+                       readonly
+                       th:value="${user.role}">
+            </div>
+
+            <button type="submit">Lưu thay đổi</button>
+        </form>
+    </section>
+
+    <!-- Doi mat khau -->
+    <section class="card">
+        <h2>Đổi mật khẩu</h2>
+
+        <form th:action="@{/profile/change-password}" method="post">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="currentPassword">
+                    Mật khẩu hiện tại
+                </label>
+                <input id="currentPassword"
+                       name="currentPassword"
+                       type="password"
+                       autocomplete="current-password"
+                       required>
+            </div>
+
+            <div class="field">
+                <label for="newPassword">Mật khẩu mới</label>
+                <input id="newPassword"
+                       name="newPassword"
+                       type="password"
+                       minlength="8"
+                       autocomplete="new-password"
+                       required>
+            </div>
+
+            <div class="field">
+                <label for="confirmPassword">
+                    Xác nhận mật khẩu mới
+                </label>
+                <input id="confirmPassword"
+                       name="confirmPassword"
+                       type="password"
+                       minlength="8"
+                       autocomplete="new-password"
+                       required>
+            </div>
+
+            <button type="submit">Đổi mật khẩu</button>
+        </form>
+    </section>
+
+    <a class="back-link" th:href="@{/}">
+        ← Quay về trang chủ
+    </a>
+
+</div>
+</body>
+</html>

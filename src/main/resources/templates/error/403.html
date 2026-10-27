@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Không có quyền truy cập | Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<main>
+    <section class="error-page">
+        <p class="error-code">403</p>
+        <div class="error-decoration"></div>
+
+        <h1 class="error-title">Bạn chưa có quyền truy cập</h1>
+
+        <p class="error-message">
+            Xin lỗi, tài khoản của bạn không được phép sử dụng chức năng này.
+            Vui lòng quay lại trang phù hợp với vai trò của mình.
+        </p>
+
+        <a th:href="@{/}" class="btn btn-primary">
+            Quay về trang chủ
+        </a>
+    </section>
+</main>
+
+</body>
+</html>

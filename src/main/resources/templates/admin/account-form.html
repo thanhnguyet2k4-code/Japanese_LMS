@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thông tin tài khoản - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-account-form-page">
+<header>
+    <h1>Japanese LMS | Quản trị</h1>
+    <a th:href="@{/admin/accounts}">← Danh sách tài khoản</a>
+</header>
+
+<main>
+    <div class="breadcrumb">
+        <a th:href="@{/admin}">Trang quản trị</a>
+        /
+        <a th:href="@{/admin/accounts}">Quản lý tài khoản</a>
+        / <span th:text="${isEdit} ? 'Chỉnh sửa' : 'Tạo mới'">Tạo mới</span>
+    </div>
+
+    <section class="card">
+        <h2 th:text="${isEdit} ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'">
+            Tạo tài khoản mới
+        </h2>
+
+        <p class="description"
+           th:text="${isEdit}
+               ? 'Chỉ cập nhật họ tên, email và số điện thoại.'
+               : 'Tạo tài khoản giảng viên hoặc quản trị viên.'">
+            Nhập thông tin tài khoản.
+        </p>
+
+        <div class="error" th:if="${errorMessage != null}"
+             th:text="${errorMessage}">
+            Đã xảy ra lỗi.
+        </div>
+
+        <form method="post"
+              th:action="${isEdit}
+                  ? @{/admin/accounts/{id}/edit(id=${account.userId})}
+                  : @{/admin/accounts}"
+              th:object="${account}">
+
+            <input type="hidden"
+                   th:if="${isEdit}"
+                   name="userId"
+                   th:value="${account.userId}">
+
+            <div class="form-grid">
+                <div class="field full-width">
+                    <label for="fullName">Họ và tên *</label>
+                    <input id="fullName"
+                           type="text"
+                           name="fullName"
+                           maxlength="100"
+                           required
+                           th:value="${account.fullName}"
+                           placeholder="Nhập họ và tên">
+                </div>
+
+                <div class="field full-width">
+                    <label for="email">Email *</label>
+                    <input id="email"
+                           type="email"
+                           name="email"
+                           maxlength="150"
+                           required
+                           th:value="${account.email}"
+                           placeholder="example@email.com">
+                </div>
+
+                <div class="field"
+                     th:unless="${isEdit}">
+                    <label for="initialPassword">Mật khẩu ban đầu *</label>
+                    <input id="initialPassword"
+                           type="password"
+                           name="initialPassword"
+                           minlength="8"
+                           required
+                           autocomplete="new-password"
+                           placeholder="Ít nhất 8 ký tự">
+                    <small>Mật khẩu sẽ được mã hóa trước khi lưu.</small>
+                </div>
+
+                <div class="field"
+                     th:unless="${isEdit}">
+                    <label for="role">Vai trò *</label>
+                    <select id="role" name="role" required>
+                        <option value="">-- Chọn vai trò --</option>
+                        <option value="INSTRUCTOR">Giảng viên</option>
+                        <option value="ADMIN">Quản trị viên</option>
+                    </select>
+                </div>
+
+                <div class="field full-width">
+                    <label for="phone">Số điện thoại</label>
+                    <input id="phone"
+                           type="tel"
+                           name="phone"
+                           maxlength="20"
+                           th:value="${account.phone}"
+                           placeholder="Nhập số điện thoại">
+                </div>
+            </div>
+
+            <div class="actions">
+                <a th:href="@{/admin/accounts}"
+                   class="button secondary">Hủy</a>
+
+                <button type="submit" class="button primary"
+                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo tài khoản'">
+                    Tạo tài khoản
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer>
+    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
+</footer>
+</body>
+</html>
