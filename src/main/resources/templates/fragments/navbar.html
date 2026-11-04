@@ -101,11 +101,6 @@
         </a>
 
         <div class="nav-links">
-            // Nguyên dz thêm điều hướng nhanh để mọi bấm chuyển được mượt
-            <a th:href="@{/courses}">Khóa học</a>
-            <a sec:authorize="hasRole('STUDENT')" th:href="@{/my-courses}">Khóa học của tôi</a>
-            <a sec:authorize="hasRole('INSTRUCTOR')" th:href="@{/instructor/courses}">Quản lý khóa học</a>
-            //----------------------------------------------------------------
             <a th:href="@{/}" class="nav-link">Trang chủ</a>
 
             <a sec:authorize="hasRole('INSTRUCTOR')"

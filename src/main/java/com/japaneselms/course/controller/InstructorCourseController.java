@@ -1,11 +1,16 @@
 package com.japaneselms.course.controller;
 
-import com.japaneselms.course.dto.CourseFormDto;
+import com.japaneselms.course.dto.CourseForm;
+import com.japaneselms.course.dto.CourseLevel;
 import com.japaneselms.course.dto.CourseSummaryDto;
-import com.japaneselms.course.service.CourseService;
+import com.japaneselms.course.exception.DuplicateCourseNameException;
+import com.japaneselms.course.service.InstructorCourseService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,145 +18,166 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * S09 – Course Management (UC08). Toàn bộ /instructor/** đã được SecurityConfig của Leader
+ * giới hạn cho ROLE_INSTRUCTOR. Quyền sở hữu từng khóa học được kiểm tra thêm ở Service.
+ * Một template duy nhất (instructor/course-form) có 2 chế độ: mode = "list" | "form".
+ */
 @Controller
 @RequestMapping("/instructor/courses")
-@RequiredArgsConstructor
 public class InstructorCourseController {
 
-    private final CourseService courseService;
+    private static final String VIEW = "instructor/course-form";
 
-    /**
-     * S09: Hiển thị danh sách khóa học của Instructor kèm biểu mẫu Tạo mới
-     */
+    private final InstructorCourseService instructorCourseService;
+
+    public InstructorCourseController(InstructorCourseService instructorCourseService) {
+        this.instructorCourseService = instructorCourseService;
+    }
+
+    // ==================== DANH SÁCH ====================
+
     @GetMapping
-    public String manageCourses(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            Authentication auth,
-            Model model
-    ) {
-        if (!model.containsAttribute("courseForm")) {
-            model.addAttribute("courseForm", new CourseFormDto());
-        }
-        model.addAttribute("editMode", false);
-        populateInstructorCourseList(auth.getName(), page, size, model);
-        return "course/instructor-courses";
+    public String list(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication,
+            Model model) {
+
+        Long instructorId = AuthUtils.requireUserId(authentication);
+
+        Page<CourseSummaryDto> courses = instructorCourseService.getMyCourses(instructorId, pageable);
+
+        model.addAttribute("mode", "list");
+        model.addAttribute("courses", courses);
+        model.addAttribute("currentPage", courses.getNumber());
+        model.addAttribute("totalPages", courses.getTotalPages());
+        model.addAttribute("totalElements", courses.getTotalElements());
+
+        return VIEW;
     }
 
-    /**
-     * S09: Mở chế độ tạo mới khóa học
-     */
+    // ==================== TẠO MỚI ====================
+
     @GetMapping("/new")
-    public String showCreateForm(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            Authentication auth,
-            Model model
-    ) {
-        model.addAttribute("courseForm", new CourseFormDto());
-        model.addAttribute("editMode", false);
-        populateInstructorCourseList(auth.getName(), page, size, model);
-        return "course/instructor-courses";
+    public String showCreateForm(Model model) {
+        prepareForm(model, new CourseForm(), null);
+        return VIEW;
     }
 
-    /**
-     * S09: Xử lý POST tạo mới khóa học
-     */
-    @PostMapping
-    public String createCourse(
-            @Valid @ModelAttribute("courseForm") CourseFormDto courseForm,
-            BindingResult bindingResult,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            Authentication auth,
-            Model model,
-            RedirectAttributes redirectAttributes
-    ) {
-        if (!bindingResult.hasFieldErrors("courseName")
-                && courseService.isDuplicateCourseName(auth.getName(), courseForm.getCourseName(), null)) {
-            bindingResult.rejectValue("courseName", "duplicate", "Tên khóa học này đã tồn tại trong danh sách của bạn");
-        }
+    @PostMapping("/new")
+    public String create(@Valid @ModelAttribute("courseForm") CourseForm courseForm,
+                         BindingResult bindingResult,
+                         Authentication authentication,
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
 
+        // E1/E2: lỗi validation -> trả lại form, giữ dữ liệu đã nhập, KHÔNG redirect
         if (bindingResult.hasErrors()) {
-            model.addAttribute("editMode", false);
-            populateInstructorCourseList(auth.getName(), page, size, model);
-            return "course/instructor-courses";
+            prepareForm(model, null, null);
+            return VIEW;
         }
 
-        courseService.createCourse(courseForm, auth.getName());
-        redirectAttributes.addFlashAttribute("successMessage", "Tạo khóa học mới thành công!");
-        return "redirect:/instructor/courses";
+        Long instructorId = AuthUtils.requireUserId(authentication);
+
+        try {
+            instructorCourseService.createCourse(courseForm, instructorId);
+        } catch (DuplicateCourseNameException ex) {
+            // E3: trùng tên trong cùng Instructor -> gắn lỗi vào field courseName
+            bindingResult.rejectValue("courseName", "duplicate", ex.getMessage());
+            prepareForm(model, null, null);
+            return VIEW;
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Đã tạo khóa học mới.");
+        return "redirect:/instructor/courses";   // Post-Redirect-Get
     }
 
-    /**
-     * S09: Nạp dữ liệu khóa học lên Form để chỉnh sửa
-     */
+    // ==================== SỬA ====================
+
     @GetMapping("/{id}/edit")
-    public String showEditForm(
-            @PathVariable("id") Long id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            Authentication auth,
-            Model model
-    ) {
-        CourseFormDto formDto = courseService.getCourseFormForEdit(id, auth.getName());
-        model.addAttribute("courseForm", formDto);
-        model.addAttribute("editMode", true);
-        populateInstructorCourseList(auth.getName(), page, size, model);
-        return "course/instructor-courses";
+    public String showEditForm(@PathVariable Long id, Authentication authentication, Model model) {
+        Long instructorId = AuthUtils.requireUserId(authentication);
+
+        // Service kiểm tra khóa học tồn tại (404) và thuộc về instructor này (403)
+        CourseForm form = instructorCourseService.getCourseForm(id, instructorId);
+
+        prepareForm(model, form, id);
+        return VIEW;
     }
 
-    /**
-     * S09: Xử lý POST cập nhật khóa học
-     */
     @PostMapping("/{id}/edit")
-    public String updateCourse(
-            @PathVariable("id") Long id,
-            @Valid @ModelAttribute("courseForm") CourseFormDto courseForm,
-            BindingResult bindingResult,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            Authentication auth,
-            Model model,
-            RedirectAttributes redirectAttributes
-    ) {
-        courseForm.setCourseId(id);
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("courseForm") CourseForm courseForm,
+                         BindingResult bindingResult,
+                         Authentication authentication,
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
 
-        if (!bindingResult.hasFieldErrors("courseName")
-                && courseService.isDuplicateCourseName(auth.getName(), courseForm.getCourseName(), id)) {
-            bindingResult.rejectValue("courseName", "duplicate", "Tên khóa học này đã tồn tại trong danh sách của bạn");
-        }
+        Long instructorId = AuthUtils.requireUserId(authentication);
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("editMode", true);
-            populateInstructorCourseList(auth.getName(), page, size, model);
-            return "course/instructor-courses";
+            prepareForm(model, null, id);
+            return VIEW;
         }
 
-        courseService.updateCourse(id, courseForm, auth.getName());
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật khóa học thành công!");
+        try {
+            instructorCourseService.updateCourse(id, courseForm, instructorId);
+        } catch (DuplicateCourseNameException ex) {
+            bindingResult.rejectValue("courseName", "duplicate", ex.getMessage());
+            prepareForm(model, null, id);
+            return VIEW;
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật khóa học.");
         return "redirect:/instructor/courses";
     }
+
+    // ==================== NGỪNG HOẠT ĐỘNG / XÓA ====================
+
+    @PostMapping("/{id}/deactivate")
+    public String deactivate(@PathVariable Long id,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
+
+        Long instructorId = AuthUtils.requireUserId(authentication);
+
+        try {
+            switch (instructorCourseService.deactivateOrDelete(id, instructorId)) {
+                case DELETED -> redirectAttributes.addFlashAttribute("successMessage",
+                        "Đã xóa khóa học (khóa học chưa có dữ liệu liên quan).");
+                case DEACTIVATED -> redirectAttributes.addFlashAttribute("successMessage",
+                        "Khóa học có dữ liệu liên quan nên đã được chuyển sang INACTIVE.");
+                case ALREADY_INACTIVE -> redirectAttributes.addFlashAttribute("errorMessage",
+                        "Khóa học này đã ở trạng thái ngừng hoạt động.");
+            }
+
+        } catch (DataIntegrityViolationException ex) {
+            // E6: vừa có học viên đăng ký ngay sau bước kiểm tra -> transaction đã rollback,
+            // chuyển sang Soft Delete trong một transaction mới.
+            instructorCourseService.forceDeactivate(id, instructorId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Khóa học vừa phát sinh dữ liệu liên quan nên đã được chuyển sang INACTIVE.");
+        }
+
+        return "redirect:/instructor/courses";
+    }
+
+    // ==================== HÀM DÙNG CHUNG ====================
 
     /**
-     * S09: Ngừng hoạt động (Soft Delete) hoặc xóa khóa học nếu chưa có dữ liệu liên quan
+     * Chuẩn bị model cho chế độ form.
+     *
+     * @param form     form cần đưa vào model; truyền null khi form đã nằm sẵn trong model
+     *                 (trường hợp POST có lỗi, để giữ nguyên dữ liệu + lỗi của BindingResult)
+     * @param courseId id khóa học đang sửa; null nghĩa là đang tạo mới
      */
-    @PostMapping("/{id}/deactivate")
-    public String deactivateCourse(
-            @PathVariable("id") Long id,
-            Authentication auth,
-            RedirectAttributes redirectAttributes
-    ) {
-        String resultMessage = courseService.deactivateOrDeleteCourse(id, auth.getName());
-        redirectAttributes.addFlashAttribute("successMessage", resultMessage);
-        return "redirect:/instructor/courses";
-    }
-
-    private void populateInstructorCourseList(String email, int page, int size, Model model) {
-        Page<CourseSummaryDto> coursePage = courseService.getInstructorCourses(email, page, size);
-        model.addAttribute("courses", coursePage);
-        model.addAttribute("levels", CourseService.ALLOWED_LEVELS);
-        model.addAttribute("currentPage", coursePage.getNumber());
-        model.addAttribute("totalPages", coursePage.getTotalPages());
+    private void prepareForm(Model model, CourseForm form, Long courseId) {
+        if (form != null) {
+            model.addAttribute("courseForm", form);
+        }
+        model.addAttribute("mode", "form");
+        model.addAttribute("isEdit", courseId != null);
+        model.addAttribute("courseId", courseId);
+        model.addAttribute("levels", CourseLevel.values());
     }
 }
