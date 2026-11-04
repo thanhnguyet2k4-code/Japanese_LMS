@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
+
     // UC07 & UC09: Kiểm tra sinh viên đã đăng ký khóa học này chưa
     boolean existsByStudent_UserIdAndCourse_CourseId(Long studentId, Long courseId);
 

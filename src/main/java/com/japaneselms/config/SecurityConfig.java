@@ -1,4 +1,3 @@
-
 package com.japaneselms.config;
 
 import org.springframework.context.annotation.Bean;
@@ -25,6 +24,11 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/favicon.ico"
                         ).permitAll()
+                        // Bổ sung phân quyền cho Nguyêndz
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/courses", "/courses/*").permitAll()
+                        .requestMatchers("/courses/*/enroll", "/my-courses/**").hasRole("STUDENT")
+                        .requestMatchers("/instructor/courses/**").hasRole("INSTRUCTOR")
+                        //------------------------------------------------------------
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                         .requestMatchers("/student", "/student/**").hasRole("STUDENT")
                         .requestMatchers("/instructor", "/instructor/**").hasRole("INSTRUCTOR")

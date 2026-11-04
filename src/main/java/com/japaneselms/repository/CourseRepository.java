@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
+
     // UC06: Tìm kiếm và lọc khóa học ACTIVE cho Guest/Student (Server-side Pagination & Filtering)
     @EntityGraph(attributePaths = {"instructor"})
     @Query("""

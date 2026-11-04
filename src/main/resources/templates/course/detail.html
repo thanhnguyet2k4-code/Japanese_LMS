@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${course.courseName()} + ' - Japanese LMS'">Chi tiết khóa học</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container page-shell">
+    <div style="margin-bottom: 16px;">
+        <a class="btn btn-secondary btn-sm" th:href="@{/courses}">← Quay lại danh sách khóa học</a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+    <div class="card">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px;">
+            <div>
+                <span class="badge APPROVED" th:text="'Cấp độ JLPT ' + ${course.jlptLevel()}"></span>
+                <h1 style="margin: 10px 0 6px;" th:text="${course.courseName()}"></h1>
+                <p class="muted" style="margin: 0;">
+                    Giảng viên phụ trách: <strong th:text="${course.instructorName()}"></strong>
+                    (<span th:text="${course.instructorEmail()}"></span>)
+                </p>
+            </div>
+
+            <!-- Khu vực Nút Hành Động theo Vai Trò (UC07 & UC09) -->
+            <div>
+                <!-- Guest chưa đăng nhập -->
+                <div sec:authorize="isAnonymous()">
+                    <a class="btn" th:href="@{/login}">Đăng nhập để đăng ký</a>
+                </div>
+
+                <!-- Student chưa đăng ký khóa học -->
+                <div sec:authorize="hasRole('STUDENT')" th:if="${!course.enrolled()}">
+                    <form method="post" th:action="@{/courses/{id}/enroll(id=${course.courseId()})}">
+                        <button type="submit" class="btn">Đăng ký khóa học ngay</button>
+                    </form>
+                </div>
+
+                <!-- Student đã đăng ký khóa học -->
+                <div sec:authorize="hasRole('STUDENT')" th:if="${course.enrolled()}"
+                     style="display: flex; gap: 10px; align-items: center;">
+                    <span class="badge APPROVED">✓ Đã ghi danh</span>
+                    <a class="btn" th:href="@{/courses/{id}/lessons(id=${course.courseId()})}">Vào học (Danh sách bài
+                        học)</a>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+        <div class="dashboard-grid" style="margin-bottom: 20px;">
+            <div class="stat-card">
+                <span>Cấp độ mục tiêu</span>
+                <strong th:text="${course.jlptLevel()}"></strong>
+            </div>
+            <div class="stat-card">
+                <span>Số lượng bài học</span>
+                <strong th:text="${course.lessonCount()} + ' bài'"></strong>
+            </div>
+            <div class="stat-card">
+                <span>Số học viên đã đăng ký</span>
+                <strong th:text="${course.enrolledStudentCount()} + ' học viên'"></strong>
+            </div>
+        </div>
+
+        <h3>Mô tả chi tiết khóa học</h3>
+        <p style="white-space: pre-line; line-height: 1.7; color: #334155;" th:text="${course.description()}"></p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

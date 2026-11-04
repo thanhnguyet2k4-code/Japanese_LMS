@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý khóa học - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container page-shell">
+    <div class="page-header">
+        <div>
+            <h1>Quản lý khóa học (Instructor)</h1>
+            <p class="muted">Tạo mới, cập nhật nội dung và quản lý trạng thái khóa học do bạn phụ trách</p>
+        </div>
+        <a th:if="${editMode}" class="btn btn-outline" th:href="@{/instructor/courses/new}">+ Chuyển sang tạo khóa học
+            mới</a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+    <!-- Biểu mẫu Tạo / Cập nhật Khóa Học (S09 Form) -->
+    <div class="card">
+        <h2 style="margin-top: 0;"
+            th:text="${editMode} ? 'Cập nhật khóa học #' + ${courseForm.courseId} : 'Tạo khóa học mới'"></h2>
+
+        <form method="post"
+              th:action="${editMode} ? @{/instructor/courses/{id}/edit(id=${courseForm.courseId})} : @{/instructor/courses}"
+              th:object="${courseForm}"
+              class="form-grid">
+
+            <label>Tên khóa học *
+                <input type="text" th:field="*{courseName}" placeholder="Ví dụ: Tiếng Nhật sơ cấp N5 toàn diện">
+                <small class="field-error" th:if="${#fields.hasErrors('courseName')}" th:errors="*{courseName}"></small>
+            </label>
+
+            <label>Cấp độ JLPT *
+                <select th:field="*{jlptLevel}">
+                    <option value="">-- Chọn cấp độ --</option>
+                    <option th:each="lv : ${levels}" th:value="${lv}" th:text="${lv}"></option>
+                </select>
+                <small class="field-error" th:if="${#fields.hasErrors('jlptLevel')}" th:errors="*{jlptLevel}"></small>
+            </label>
+
+            <label>Mô tả khóa học *
+                <textarea rows="4" th:field="*{description}"
+                          placeholder="Nhập mục tiêu, nội dung và đối tượng học viên của khóa học..."
+                          style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit;"></textarea>
+                <small class="field-error" th:if="${#fields.hasErrors('description')}"
+                       th:errors="*{description}"></small>
+            </label>
+
+            <div class="action-row">
+                <button type="submit" class="btn" th:text="${editMode} ? 'Lưu cập nhật' : 'Tạo khóa học'"></button>
+                <a th:if="${editMode}" class="btn btn-secondary" th:href="@{/instructor/courses}">Hủy chỉnh sửa</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bảng danh sách khóa học của Instructor -->
+    <div class="card table-wrap">
+        <h2 style="margin-top: 0;">Danh sách khóa học của tôi</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên khóa học</th>
+                <th>Cấp độ</th>
+                <th>Học viên</th>
+                <th>Bài học</th>
+                <th>Trạng thái</th>
+                <th>Cập nhật cuối</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${courses.isEmpty()}">
+                <td colspan="8" style="text-align: center;" class="muted">Bạn chưa tạo khóa học nào.</td>
+            </tr>
+            <tr th:each="c : ${courses.content}">
+                <td th:text="${c.courseId()}"></td>
+                <td>
+                    <strong th:text="${c.courseName()}"></strong>
+                </td>
+                <td><span class="badge APPROVED" th:text="${c.jlptLevel()}"></span></td>
+                <td th:text="${c.studentCount()}"></td>
+                <td th:text="${c.lessonCount()}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${c.courseStatus()}"
+                          th:text="${c.courseStatus()}"></span>
+                </td>
+                <td th:text="${#temporals.format(c.updatedAt(), 'dd/MM/yyyy HH:mm')}"></td>
+                <td>
+                    <div class="action-row">
+                        <a class="btn btn-secondary btn-sm"
+                           th:href="@{/instructor/courses/{id}/edit(id=${c.courseId()}, page=${currentPage})}">Sửa</a>
+
+                        <form th:if="${c.courseStatus() == 'ACTIVE'}"
+                              method="post"
+                              th:action="@{/instructor/courses/{id}/deactivate(id=${c.courseId()})}"
+                              onsubmit="return confirm('Nếu khóa học đã có dữ liệu liên quan, hệ thống sẽ chuyển sang trạng thái INACTIVE. Nếu chưa có dữ liệu liên quan, khóa học sẽ bị xóa. Bạn có chắc chắn muốn thực hiện?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Ngừng hoạt động</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${totalPages > 1}" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">
+            <a class="btn btn-secondary btn-sm" th:if="${currentPage > 0}"
+               th:href="@{/instructor/courses(page=${currentPage - 1})}">‹ Trước</a>
+            <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+               th:href="@{/instructor/courses(page=${i})}"
+               th:text="${i + 1}"
+               th:class="${i == currentPage} ? 'btn btn-sm' : 'btn btn-secondary btn-sm'"></a>
+            <a class="btn btn-secondary btn-sm" th:if="${currentPage + 1 < totalPages}"
+               th:href="@{/instructor/courses(page=${currentPage + 1})}">Sau ›</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
