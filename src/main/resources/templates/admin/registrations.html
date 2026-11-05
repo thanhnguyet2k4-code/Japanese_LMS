@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý yêu cầu đăng ký - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-registrations-page">
+
+<header>
+    <h1>Japanese LMS | Quản trị</h1>
+    <a th:href="@{/admin}">← Về trang quản trị</a>
+</header>
+
+<main>
+    <div class="breadcrumb">
+        <a th:href="@{/admin}">Trang quản trị</a>
+        / Quản lý yêu cầu đăng ký
+    </div>
+
+    <section class="page-heading">
+        <div>
+            <h2>Quản lý yêu cầu đăng ký Student</h2>
+            <p>Kiểm tra thông tin và quyết định phê duyệt tài khoản học viên.</p>
+        </div>
+        <span class="status">
+            Đang chờ duyệt:
+            <span th:text="${#lists.size(students)}">0</span>
+        </span>
+    </section>
+
+    <div th:if="${successMessage}" class="message success"
+         role="status" th:text="${successMessage}">
+    </div>
+
+    <div th:if="${errorMessage}" class="message error"
+         role="alert" th:text="${errorMessage}">
+    </div>
+
+    <section class="card">
+        <div class="toolbar">
+            <input type="search"
+                   id="searchInput"
+                   placeholder="Tìm theo họ tên, email hoặc số điện thoại..."
+                   aria-label="Tìm kiếm yêu cầu đăng ký">
+
+            <select id="pageSize" aria-label="Số dòng mỗi trang">
+                <option value="5">5 yêu cầu / trang</option>
+                <option value="10" selected>10 yêu cầu / trang</option>
+                <option value="20">20 yêu cầu / trang</option>
+            </select>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Ngày đăng ký</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody id="studentTableBody">
+                <tr th:each="student, stat : ${students}"
+                    class="student-row"
+                    th:attr="data-name=${student.fullName},
+                             data-email=${student.email},
+                             data-phone=${student.phone}">
+
+                    <td class="row-number"
+                        th:text="${stat.count}">1</td>
+
+                    <td th:text="${student.fullName}">Nguyen Van A</td>
+
+                    <td th:text="${student.email}">student@example.com</td>
+
+                    <td th:text="${student.phone != null and !student.phone.isBlank()
+                                  ? student.phone : 'Chưa cung cấp'}">
+                        Chưa cung cấp
+                    </td>
+
+                    <td th:text="${student.createdAt != null
+                                  ? #temporals.format(student.createdAt, 'dd/MM/yyyy HH:mm')
+                                  : 'Không có dữ liệu'}">
+                        14/10/2026
+                    </td>
+
+                    <td>
+                        <span class="status"
+                              th:text="${student.accountStatus}">PENDING</span>
+                    </td>
+
+                    <td>
+                        <div class="actions">
+                            <button type="button"
+                                    class="btn-detail"
+                                    th:attr="data-id=${student.userId},
+                                             data-name=${student.fullName},
+                                             data-email=${student.email},
+                                             data-phone=${student.phone},
+                                             data-created=${student.createdAt},
+                                             data-avatar=${student.avatarPath}"
+                                    onclick="showDetails(this)">
+                                Chi tiết
+                            </button>
+
+                            <button type="button"
+                                    class="btn-approve"
+                                    th:attr="data-id=${student.userId},
+                                             data-name=${student.fullName}"
+                                    onclick="showApproveDialog(this)">
+                                Duyệt
+                            </button>
+
+                            <button type="button"
+                                    class="btn-reject"
+                                    th:attr="data-id=${student.userId},
+                                             data-name=${student.fullName}"
+                                    onclick="showRejectDialog(this)">
+                                Từ chối
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyMessage" class="empty" hidden>
+            Không tìm thấy yêu cầu đăng ký phù hợp.
+        </div>
+
+        <div class="pagination">
+            <span id="pageInfo">Trang 1</span>
+
+            <div class="pagination-controls">
+                <button type="button" id="previousPage" class="btn-secondary">
+                    Trang trước
+                </button>
+                <button type="button" id="nextPage" class="btn-secondary">
+                    Trang sau
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Dialog xem chi tiet -->
+<dialog id="detailDialog">
+    <h3>Chi tiết đăng ký Student</h3>
+
+    <div class="detail-grid">
+        <div class="detail-label">Họ và tên</div>
+        <div class="detail-value" id="detailName">—</div>
+
+        <div class="detail-label">Email</div>
+        <div class="detail-value" id="detailEmail">—</div>
+
+        <div class="detail-label">Số điện thoại</div>
+        <div class="detail-value" id="detailPhone">—</div>
+
+        <div class="detail-label">Ngày đăng ký</div>
+        <div class="detail-value" id="detailCreated">—</div>
+    </div>
+
+    <div class="dialog-actions">
+        <button type="button" class="btn-secondary"
+                onclick="document.getElementById('detailDialog').close()">
+            Đóng
+        </button>
+    </div>
+</dialog>
+
+<!-- Dialog xac nhan phe duyet -->
+<dialog id="approveDialog">
+    <h3>Xác nhận phê duyệt</h3>
+    <p>
+        Bạn có chắc chắn muốn phê duyệt tài khoản của
+        <strong id="approveStudentName"></strong> không?
+    </p>
+    <p>Sau khi phê duyệt, học viên có thể đăng nhập nếu tài khoản đang hoạt động.</p>
+    <form id="approveForm" method="post">
+        <!-- Ma CSRF bao ve yeu cau POST -->
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+
+        <div class="dialog-actions">
+            <button type="button"
+                    class="btn-secondary"
+                    onclick="document.getElementById('approveDialog').close()">
+                Hủy
+            </button>
+
+            <button type="submit" class="btn-approve">
+                Xác nhận phê duyệt
+            </button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Dialog tu choi -->
+<dialog id="rejectDialog">
+    <h3>Xác nhận từ chối đăng ký</h3>
+    <p>
+        Bạn đang xử lý yêu cầu của
+        <strong id="rejectStudentName"></strong>.
+    </p>
+
+    <form id="rejectForm" method="post">
+        <label class="field-label" for="reviewNote">
+            Lý do từ chối (không bắt buộc)
+        </label>
+
+        <textarea id="reviewNote"
+                  name="reviewNote"
+                  rows="4"
+                  maxlength="500"
+                  placeholder="Nhập lý do từ chối nếu có..."></textarea>
+
+        <div class="dialog-actions">
+            <button type="button" class="btn-secondary"
+                    onclick="document.getElementById('rejectDialog').close()">
+                Hủy
+            </button>
+            <button type="submit" class="btn-reject">
+                Xác nhận từ chối
+            </button>
+        </div>
+    </form>
+</dialog>
+
+<footer>
+    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
+</footer>
+
+<script>
+    // Xem thong tin chi tiet
+    function showDetails(button) {
+        document.getElementById('detailName').textContent =
+            button.dataset.name || 'Chưa cung cấp';
+
+        document.getElementById('detailEmail').textContent =
+            button.dataset.email || 'Chưa cung cấp';
+
+        document.getElementById('detailPhone').textContent =
+            button.dataset.phone || 'Chưa cung cấp';
+
+        const created = button.dataset.created;
+        document.getElementById('detailCreated').textContent =
+            created ? created.replace('T', ' ') : 'Không có dữ liệu';
+
+        document.getElementById('detailDialog').showModal();
+    }
+
+    // Xac nhan tu choi
+    function showRejectDialog(button) {
+        const id = button.dataset.id;
+
+        document.getElementById('rejectStudentName').textContent =
+            button.dataset.name || '';
+
+        document.getElementById('rejectForm').action =
+            '/admin/registrations/' + encodeURIComponent(id) + '/reject';
+
+        document.getElementById('reviewNote').value = '';
+        document.getElementById('rejectDialog').showModal();
+    }
+    function showApproveDialog(button) {
+        const studentId = button.dataset.id;
+        const studentName = button.dataset.name;
+
+        document.getElementById("approveStudentName").textContent =
+            studentName;
+
+        document.getElementById("approveForm").action =
+            "/admin/registrations/" + studentId + "/approve";
+
+        document.getElementById("approveDialog").showModal();
+    }
+
+    // Tim kiem va phan trang tren danh sach hien thi
+    const searchInput = document.getElementById('searchInput');
+    const pageSizeSelect = document.getElementById('pageSize');
+    const rows = Array.from(document.querySelectorAll('.student-row'));
+    const emptyMessage = document.getElementById('emptyMessage');
+    const pageInfo = document.getElementById('pageInfo');
+    const previousPage = document.getElementById('previousPage');
+    const nextPage = document.getElementById('nextPage');
+
+    let currentPage = 1;
+
+    function updateTable() {
+        const keyword = searchInput.value.trim().toLocaleLowerCase('vi');
+        const pageSize = Number(pageSizeSelect.value);
+
+        const filteredRows = rows.filter(row => {
+            const text = [
+                row.dataset.name,
+                row.dataset.email,
+                row.dataset.phone
+            ].join(' ').toLocaleLowerCase('vi');
+
+            return text.includes(keyword);
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        rows.forEach(row => {
+            row.hidden = true;
+        });
+
+        const start = (currentPage - 1) * pageSize;
+        const visibleRows = filteredRows.slice(start, start + pageSize);
+
+        visibleRows.forEach((row, index) => {
+            row.hidden = false;
+            row.querySelector('.row-number').textContent = start + index + 1;
+        });
+
+        emptyMessage.hidden = filteredRows.length !== 0;
+        pageInfo.textContent =
+            'Trang ' + currentPage + ' / ' + totalPages +
+            ' — ' + filteredRows.length + ' yêu cầu';
+
+        previousPage.disabled = currentPage <= 1;
+        nextPage.disabled = currentPage >= totalPages;
+    }
+
+    searchInput.addEventListener('input', () => {
+        currentPage = 1;
+        updateTable();
+    });
+
+    pageSizeSelect.addEventListener('change', () => {
+        currentPage = 1;
+        updateTable();
+    });
+
+    previousPage.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updateTable();
+        }
+    });
+
+    nextPage.addEventListener('click', () => {
+        currentPage++;
+        updateTable();
+    });
+
+    updateTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${'Danh sách bài nộp: ' + assignment.title + ' — S18'}">S18 — Xem bài nộp của học viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --ink: #172b40;
+            --muted: #657789;
+            --line: #e2e9ee;
+            --accent: #087f77;
+            --accent-hover: #066c66;
+            --bg-page: #f4f8f9;
+        }
+        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
+        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
+        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 8px 18px; border: none; transition: all .2s; }
+        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); }
+        .badge-status { font-weight: 700; font-size: 0.78rem; padding: 6px 12px; border-radius: 50px; }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="container-fluid px-md-5 py-4 flex-grow-1">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/courses}" class="text-decoration-none text-muted">Khóa học</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/instructor/courses/{id}/assignments(id=${assignment.courseId})}" 
+                       class="text-decoration-none text-muted">Danh sách bài tập</a>
+                </li>
+                <li class="breadcrumb-item active fw-bold text-teal" aria-current="page">Danh sách bài nộp (S18)</li>
+            </ol>
+        </nav>
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="check-circle" class="text-success"></i>
+                <span th:text="${successMessage}">Thao tác thành công</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="alert-circle" class="text-danger"></i>
+                <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Tiêu đề & Thông tin bài tập -->
+        <div class="card card-custom bg-white p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="badge rounded-pill bg-light text-muted border px-3 py-1 mb-2 fw-semibold">Màn hình S18 — Giảng viên</span>
+                    <h1 class="h4 fw-extrabold mb-1" style="color: var(--ink);">
+                        Danh sách bài nộp: <span th:text="${assignment.title}">Luyện dịch N5</span>
+                    </h1>
+                    <div class="text-muted small">
+                        Khóa học: <strong th:text="${assignment.courseName}">Khóa học N5</strong> · 
+                        Tổng số bài đã nộp: <span class="badge bg-secondary rounded-pill" th:text="${assignment.submissionCount}">0</span>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc theo trạng thái chấm điểm -->
+                <form th:action="@{/instructor/assignments/{id}/submissions(id=${assignment.assignmentId})}" method="get" class="d-flex align-items-center gap-2">
+                    <label for="statusSelect" class="form-label mb-0 text-muted small fw-bold">Trạng thái:</label>
+                    <select id="statusSelect" name="status" class="form-select form-select-sm" style="width: 170px;" onchange="this.form.submit()">
+                        <option value="ALL" th:selected="${status == 'ALL' || status == null}">Tất cả bài nộp</option>
+                        <option value="UNGRADED" th:selected="${status == 'UNGRADED'}">Chưa chấm điểm</option>
+                        <option value="GRADED" th:selected="${status == 'GRADED'}">Đã chấm điểm</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách bài nộp -->
+        <div class="card card-custom bg-white overflow-hidden mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-secondary small text-uppercase fw-bold">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 60px;">STT</th>
+                            <th class="py-3">Học viên</th>
+                            <th class="py-3">Email</th>
+                            <th class="py-3">Thời gian nộp</th>
+                            <th class="py-3">Hình thức nộp</th>
+                            <th class="py-3">Điểm số</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="text-end pe-4 py-3">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Trường hợp danh sách trống -->
+                        <tr th:if="${submissions.empty}">
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i data-lucide="inbox" style="width: 48px; height: 48px; color: #b6c4cf;" class="mb-2"></i>
+                                <p class="mb-0 fw-bold">Chưa có bài nộp nào cho bài tập này.</p>
+                                <small>Học viên sau khi gửi bài làm sẽ xuất hiện tự động tại đây.</small>
+                            </td>
+                        </tr>
+
+                        <!-- Danh sách bài nộp -->
+                        <tr th:each="sub, iter : ${submissions.content}">
+                            <td class="ps-4 fw-bold text-muted" th:text="${(currentPage * 10) + iter.count}">1</td>
+                            <td>
+                                <div class="fw-bold text-dark" th:text="${sub.studentName}">Nguyễn Văn A</div>
+                            </td>
+                            <td class="text-muted small" th:text="${sub.studentEmail}">student@example.com</td>
+                            <td class="small" th:text="${#temporals.format(sub.submittedAt, 'HH:mm - dd/MM/yyyy')}">14:00 - 25/10/2026</td>
+                            <td>
+                                <span th:if="${sub.responseText != null && sub.hasFile}" class="badge bg-info-subtle text-info border border-info-subtle">Văn bản &amp; Tệp</span>
+                                <span th:if="${sub.responseText != null && !sub.hasFile}" class="badge bg-primary-subtle text-primary border border-primary-subtle">Văn bản</span>
+                                <span th:if="${sub.responseText == null && sub.hasFile}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Tệp đính kèm</span>
+                            </td>
+                            <td>
+                                <span th:if="${sub.graded}" class="fw-bold text-success fs-6" th:text="${sub.grade + ' / 10'}">9.0 / 10</span>
+                                <span th:unless="${sub.graded}" class="text-muted fst-italic small">Chưa có điểm</span>
+                            </td>
+                            <td>
+                                <span th:if="${sub.graded}" class="badge badge-status bg-success-subtle text-success border border-success-subtle">Đã chấm</span>
+                                <span th:unless="${sub.graded}" class="badge badge-status bg-warning-subtle text-warning border border-warning-subtle">Chờ chấm</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-inline-flex gap-2">
+                                    <!-- Xem nội dung văn bản nếu có -->
+                                    <button th:if="${sub.responseText != null && !sub.responseText.isBlank()}" 
+                                            type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                            data-bs-toggle="modal" th:data-bs-target="${'#modal-text-' + sub.submissionId}">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px; vertical-align: middle;"></i> Xem text
+                                    </button>
+
+                                    <!-- Tải tệp nếu có -->
+                                    <a th:if="${sub.hasFile}" 
+                                       th:href="@{/instructor/submissions/{id}/download(id=${sub.submissionId})}" 
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                       th:title="${'Tải tệp: ' + sub.originalFileName}">
+                                        <i data-lucide="download" style="width: 14px; height: 14px; vertical-align: middle;"></i> Tải tệp (<span th:text="${sub.fileType}">PDF</span>)
+                                    </a>
+
+                                    <!-- Nút Chuyển sang chấm điểm S20 (Dành cho Member 5 tích hợp) -->
+                                    <a th:href="@{/instructor/submissions/{id}/grade(id=${sub.submissionId})}" 
+                                       class="btn btn-sm btn-teal">
+                                        <i data-lucide="check-square" style="width: 14px; height: 14px; vertical-align: middle;"></i> Chấm điểm (S20)
+                                    </a>
+                                </div>
+
+                                <!-- Modal xem nội dung câu trả lời -->
+                                <div th:if="${sub.responseText != null && !sub.responseText.isBlank()}" 
+                                     class="modal fade text-start" th:id="${'modal-text-' + sub.submissionId}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content border-0 rounded-4 shadow">
+                                            <div class="modal-header border-bottom">
+                                                <h5 class="modal-title fw-bold">
+                                                    Bài làm của học viên: <span th:text="${sub.studentName}">Học viên</span>
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-4">
+                                                <div class="text-muted small mb-2">Nội dung câu trả lời (Nộp lúc: <span th:text="${#temporals.format(sub.submittedAt, 'HH:mm:ss - dd/MM/yyyy')}"></span>):</div>
+                                                <div class="p-3 bg-light rounded-3 border" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;" th:text="${sub.responseText}">
+                                                    Nội dung text ở đây
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top">
+                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phân trang Server-side Pagination -->
+            <div class="p-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-3" th:if="${totalPages > 1}">
+                <div class="small text-muted">
+                    Trang <strong th:text="${currentPage + 1}">1</strong> / <span th:text="${totalPages}">1</span>
+                </div>
+                <nav aria-label="Pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                            <a class="page-link" th:href="@{/instructor/assignments/{id}/submissions(id=${assignment.assignmentId}, page=${currentPage - 1}, status=${status})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                            th:classappend="${currentPage == i} ? 'active' : ''">
+                            <a class="page-link" th:href="@{/instructor/assignments/{id}/submissions(id=${assignment.assignmentId}, page=${i}, status=${status})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled' : ''">
+                            <a class="page-link" th:href="@{/instructor/assignments/{id}/submissions(id=${assignment.assignmentId}, page=${currentPage + 1}, status=${status})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

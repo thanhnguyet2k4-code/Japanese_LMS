@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${'Nộp bài: ' + assignment.title + ' — S17'}">S17 — Nộp bài tập</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --ink: #172b40;
+            --muted: #657789;
+            --line: #e2e9ee;
+            --accent: #087f77;
+            --accent-hover: #066c66;
+            --bg-page: #f4f8f9;
+        }
+        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
+        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
+        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 11px 26px; border: none; transition: all .2s; }
+        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(8,127,119,0.25); }
+        .form-label { font-weight: 700; color: #344b5c; font-size: 0.92rem; }
+        .dropzone-box { border: 2px dashed #bfe1dd; border-radius: 14px; background: #fbfdfd; padding: 30px; text-align: center; cursor: pointer; transition: all .2s; }
+        .dropzone-box:hover { border-color: var(--accent); background: #f4faf9; }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="container py-4 flex-grow-1" style="max-width: 860px;">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/my-courses}" class="text-decoration-none text-muted">Khóa học của tôi</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/student/assignments/{id}(id=${assignment.assignmentId})}" 
+                       class="text-decoration-none text-muted" th:text="${assignment.title}">Chi tiết bài tập</a>
+                </li>
+                <li class="breadcrumb-item active fw-bold text-teal" aria-current="page">Biểu mẫu nộp bài (S17)</li>
+            </ol>
+        </nav>
+
+        <!-- Notification Alerts -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="alert-circle" class="text-danger"></i>
+                <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card card-custom bg-white p-4 p-md-5">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-4 mb-4">
+                <div>
+                    <span class="badge rounded-pill bg-light text-muted border px-3 py-1 mb-2 fw-semibold">Màn hình S17 — Nộp bài</span>
+                    <h1 class="h3 fw-extrabold mb-1" style="color: var(--ink);">Biểu mẫu nộp bài làm</h1>
+                    <p class="text-muted small mb-0">
+                        Bài tập: <strong th:text="${assignment.title}">Luyện dịch N5</strong> · 
+                        Khóa học: <span th:text="${assignment.courseName}">Khóa học N5</span>
+                    </p>
+                </div>
+                <div class="d-none d-sm-block">
+                    <div class="rounded-4 p-3 d-flex align-items-center justify-content-center" style="background: #e6f4f2; width: 56px; height: 56px;">
+                        <i data-lucide="file-up" style="color: var(--accent); width: 28px; height: 28px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quy tắc nộp bài lưu ý -->
+            <div class="alert alert-info border-0 rounded-3 p-3 mb-4 small" style="background-color: #f0f8f7; color: #155d57;">
+                <div class="d-flex align-items-start gap-2">
+                    <i data-lucide="info" class="flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong>Quy định nộp bài quan trọng:</strong>
+                        <ul class="mb-0 ps-3 mt-1">
+                            <li>Mỗi học viên <strong>chỉ được nộp bài đúng 1 lần</strong>. Sau khi nộp, bạn không thể chỉnh sửa hoặc nộp lại.</li>
+                            <li>Bắt buộc phải có <strong>nội dung văn bản</strong> hoặc <strong>tệp đính kèm</strong> (hoặc cả hai).</li>
+                            <li>Định dạng tệp hỗ trợ: <strong>PDF, DOCX, PNG, MP3</strong>. Dung lượng tối đa: <strong>20MB</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form nộp bài -->
+            <form th:action="@{/student/assignments/{id}/submit(id=${assignment.assignmentId})}" 
+                  th:object="${submissionForm}" method="post" enctype="multipart/form-data" id="submitForm">
+
+                <input type="hidden" th:field="*{assignmentId}">
+
+                <!-- Phần 1: Nội dung văn bản -->
+                <div class="mb-4">
+                    <label for="responseText" class="form-label">
+                        1. Nội dung câu trả lời (Văn bản)
+                    </label>
+                    <textarea class="form-control" id="responseText" rows="6" th:field="*{responseText}" 
+                              placeholder="Nhập trực tiếp câu trả lời, bản dịch tiếng Nhật, hoặc ghi chú gửi tới giảng viên..."></textarea>
+                    <div class="form-text text-muted small">Có thể để trống nếu bạn đã đính kèm tệp bài làm bên dưới.</div>
+                </div>
+
+                <!-- Phần 2: Đính kèm tệp -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        2. Đính kèm tệp bài làm (Tùy chọn nếu đã có nội dung văn bản)
+                    </label>
+                    <div class="dropzone-box" onclick="document.getElementById('file').click();">
+                        <i data-lucide="upload-cloud" style="color: var(--accent); width: 42px; height: 42px;" class="mb-2"></i>
+                        <p class="mb-1 fw-bold text-dark">Nhấp để chọn tệp từ máy tính của bạn</p>
+                        <p class="text-muted small mb-2">Hỗ trợ: PDF, DOCX, PNG, MP3 (Tối đa 20MB)</p>
+                        <input type="file" class="d-none" id="file" name="file" accept=".pdf,.docx,.png,.mp3" onchange="updateFileName(this)">
+                        <div id="file-info" class="badge bg-light text-dark border p-2 mt-2 d-none">
+                            <i data-lucide="file" class="me-1"></i> <span id="file-name-text"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút thao tác -->
+                <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-5">
+                    <a th:href="@{/student/assignments/{id}(id=${assignment.assignmentId})}" 
+                       class="btn btn-light border px-4 py-2 rounded-3 text-secondary fw-bold">
+                        Quay lại chi tiết
+                    </a>
+                    <button type="submit" class="btn btn-teal" onclick="return confirmSubmission();">
+                        <i data-lucide="send" class="me-1" style="width: 18px; height: 18px; vertical-align: middle;"></i>
+                        Xác nhận nộp bài (Không thể hoàn tác)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        function updateFileName(input) {
+            const fileInfo = document.getElementById('file-info');
+            const fileNameText = document.getElementById('file-name-text');
+            if (input.files && input.files[0]) {
+                fileNameText.textContent = input.files[0].name + " (" + (input.files[0].size / 1024 / 1024).toFixed(2) + " MB)";
+                fileInfo.classList.remove('d-none');
+            } else {
+                fileInfo.classList.add('d-none');
+            }
+        }
+
+        function confirmSubmission() {
+            const text = document.getElementById('responseText').value.trim();
+            const fileInput = document.getElementById('file');
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+
+            if (!text && !hasFile) {
+                alert('Vui lòng nhập nội dung văn bản hoặc đính kèm tệp bài làm trước khi nộp.');
+                return false;
+            }
+
+            return confirm('Xác nhận nộp bài? Theo quy định, bạn chỉ được nộp bài duy nhất 1 lần cho bài tập này!');
+        }
+    </script>
+</body>
+</html>

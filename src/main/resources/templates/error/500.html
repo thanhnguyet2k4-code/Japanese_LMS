@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Lỗi máy chủ | Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<main>
+    <section class="error-page">
+        <p class="error-code">500</p>
+        <div class="error-decoration"></div>
+
+        <h1 class="error-title">Hệ thống đang gặp sự cố</h1>
+
+        <p class="error-message"
+           th:text="${message} ?: 'Đã xảy ra lỗi ngoài ý muốn. Vui lòng thử lại sau.'">
+            Đã xảy ra lỗi ngoài ý muốn. Vui lòng thử lại sau.
+        </p>
+
+        <a th:href="@{/}" class="btn btn-primary">
+            Quay về trang chủ
+        </a>
+    </section>
+</main>
+
+</body>
+</html>
