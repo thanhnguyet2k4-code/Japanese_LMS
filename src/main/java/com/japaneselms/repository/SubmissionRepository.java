@@ -8,10 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
+
+    @Query("SELECT s FROM Submission s JOIN FETCH s.student WHERE s.assignment.assignmentId = :assignmentId ORDER BY s.submittedAt ASC")
+    List<Submission> findByAssignment_AssignmentIdOrderBySubmittedAtAsc(@Param("assignmentId") Long assignmentId);
 
     Optional<Submission> findByAssignment_AssignmentIdAndStudent_UserId(Long assignmentId, Long studentId);
 

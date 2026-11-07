@@ -1,4 +1,3 @@
-
 package com.japaneselms.account.controller;
 
 import org.springframework.stereotype.Controller;
@@ -12,4 +11,3 @@ public class AuthController {
         return "account/login";
     }
 }
-

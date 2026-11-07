@@ -10,6 +10,7 @@ import com.japaneselms.entity.User;
 import com.japaneselms.repository.AssignmentRepository;
 import com.japaneselms.repository.CourseRepository;
 import com.japaneselms.repository.LessonRepository;
+import com.japaneselms.repository.SubmissionRepository;
 import com.japaneselms.repository.UserRepository;
 import com.japaneselms.service.AssignmentService;
 import com.japaneselms.service.FileStorageService;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -47,6 +49,7 @@ public class AssignmentInstructorController {
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
     private final AssignmentRepository assignmentRepository;
+    private final SubmissionRepository submissionRepository;
     private final SecurityUtils securityUtils;
 
     public AssignmentInstructorController(
@@ -57,6 +60,7 @@ public class AssignmentInstructorController {
             LessonRepository lessonRepository,
             UserRepository userRepository,
             AssignmentRepository assignmentRepository,
+            SubmissionRepository submissionRepository,
             SecurityUtils securityUtils
     ) {
         this.assignmentService = assignmentService;
@@ -66,6 +70,7 @@ public class AssignmentInstructorController {
         this.lessonRepository = lessonRepository;
         this.userRepository = userRepository;
         this.assignmentRepository = assignmentRepository;
+        this.submissionRepository = submissionRepository;
         this.securityUtils = securityUtils;
     }
 
@@ -323,5 +328,78 @@ public class AssignmentInstructorController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFilename + "\"; filename*=UTF-8''" + encodedFilename)
                 .body(resource);
+    }
+
+    // ==========================================
+    // S20: Màn hình Chấm điểm bài nộp của học viên (Có điều hướng / chuyển bài nộp)
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @GetMapping("/submissions/{submissionId}/grade")
+    public String showGradeForm(
+            @PathVariable Long submissionId,
+            HttpServletRequest request,
+            Model model
+    ) {
+        Long instructorId = resolveInstructorId(null, null, request);
+        SubmissionResponse submission = submissionService.getSubmissionDetail(submissionId, instructorId);
+        Long assignmentId = submission.getAssignmentId();
+
+        List<com.japaneselms.entity.Submission> allSubs = submissionRepository.findByAssignment_AssignmentIdOrderBySubmittedAtAsc(assignmentId);
+        int totalSubmissions = allSubs.size();
+        int currentIndex = 0;
+        Long prevId = null;
+        Long nextId = null;
+        String prevStudentName = null;
+        String nextStudentName = null;
+
+        for (int i = 0; i < allSubs.size(); i++) {
+            if (allSubs.get(i).getSubmissionId().equals(submissionId)) {
+                currentIndex = i;
+                if (i > 0) {
+                    prevId = allSubs.get(i - 1).getSubmissionId();
+                    prevStudentName = allSubs.get(i - 1).getStudent().getFullName();
+                }
+                if (i < allSubs.size() - 1) {
+                    nextId = allSubs.get(i + 1).getSubmissionId();
+                    nextStudentName = allSubs.get(i + 1).getStudent().getFullName();
+                }
+                break;
+            }
+        }
+
+        model.addAttribute("submission", submission);
+        model.addAttribute("allSubmissions", allSubs);
+        model.addAttribute("currentIndex", currentIndex);
+        model.addAttribute("totalSubmissions", totalSubmissions);
+        model.addAttribute("prevId", prevId);
+        model.addAttribute("nextId", nextId);
+        model.addAttribute("prevStudentName", prevStudentName);
+        model.addAttribute("nextStudentName", nextStudentName);
+        return "instructor/submission-grade";
+    }
+
+    @PostMapping("/submissions/{submissionId}/grade")
+    public String saveGrade(
+            @PathVariable Long submissionId,
+            @RequestParam BigDecimal grade,
+            @RequestParam(required = false) String feedback,
+            @RequestParam(required = false, defaultValue = "save") String action,
+            @RequestParam(required = false) Long nextId,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        Long instructorId = resolveInstructorId(null, null, request);
+        try {
+            SubmissionResponse submission = submissionService.gradeSubmission(submissionId, grade, feedback, instructorId);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã lưu điểm cho học viên " + submission.getStudentName() + " (" + grade + " / 10 điểm)!");
+
+            if ("saveAndNext".equals(action) && nextId != null) {
+                return "redirect:/instructor/submissions/" + nextId + "/grade";
+            }
+            return "redirect:/instructor/assignments/" + submission.getAssignmentId() + "/submissions";
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/instructor/submissions/" + submissionId + "/grade";
+        }
     }
 }

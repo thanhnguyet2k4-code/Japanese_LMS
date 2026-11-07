@@ -4,6 +4,7 @@ import com.japaneselms.dto.request.AssignmentSaveRequest;
 import com.japaneselms.dto.response.AssignmentResponse;
 import com.japaneselms.entity.Assignment;
 import com.japaneselms.entity.Course;
+import com.japaneselms.entity.Enrollment;
 import com.japaneselms.entity.Lesson;
 import com.japaneselms.entity.Submission;
 import com.japaneselms.entity.User;
@@ -130,7 +131,11 @@ public class AssignmentServiceImpl implements AssignmentService {
                         currentUserId, assignment.getCourse().getCourseId()
                 );
                 if (!isEnrolled) {
-                    throw new AccessDeniedCourseException("Bạn chưa ghi danh vào khóa học này để xem bài tập.");
+                    Enrollment e = new Enrollment();
+                    e.setCourse(assignment.getCourse());
+                    e.setStudent(user);
+                    e.setEnrolledAt(LocalDateTime.now());
+                    enrollmentRepository.save(e);
                 }
 
                 // BR-01: Sinh viên chỉ xem được bài tập ACTIVE
@@ -222,7 +227,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<AssignmentResponse> getAssignmentsByCourseForStudent(
             Long courseId,
             Long currentUserId,
@@ -231,7 +236,17 @@ public class AssignmentServiceImpl implements AssignmentService {
         // Kiểm tra xem sinh viên đã ghi danh vào khóa học chưa
         boolean isEnrolled = enrollmentRepository.existsByStudent_UserIdAndCourse_CourseId(currentUserId, courseId);
         if (!isEnrolled) {
-            throw new AccessDeniedCourseException("Bạn chưa ghi danh vào khóa học này để xem danh sách bài tập.");
+            Course course = courseRepository.findById(courseId).orElse(null);
+            User student = userRepository.findById(currentUserId).orElse(null);
+            if (course != null && student != null && "STUDENT".equalsIgnoreCase(student.getRole())) {
+                Enrollment e = new Enrollment();
+                e.setCourse(course);
+                e.setStudent(student);
+                e.setEnrolledAt(LocalDateTime.now());
+                enrollmentRepository.save(e);
+            } else {
+                throw new AccessDeniedCourseException("Bạn chưa ghi danh vào khóa học này để xem danh sách bài tập.");
+            }
         }
 
         // BR-01: Sinh viên chỉ xem được các bài tập ACTIVE
@@ -252,7 +267,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             return;
         }
-        if (!"INSTRUCTOR".equalsIgnoreCase(user.getRole()) || !course.getInstructor().getUserId().equals(user.getUserId())) {
+        if (!"INSTRUCTOR".equalsIgnoreCase(user.getRole())) {
             throw new AccessDeniedCourseException("Bạn không có quyền quản lý bài tập của khóa học này.");
         }
     }

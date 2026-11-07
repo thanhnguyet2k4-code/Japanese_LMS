@@ -143,6 +143,19 @@ public class AssignmentStudentController {
     ) {
         Long studentId = resolveStudentId(courseId, null, request);
         Course course = courseRepository.findById(courseId).orElse(null);
+        if (studentId != null && course != null) {
+            boolean alreadyEnrolled = enrollmentRepository.existsByStudent_UserIdAndCourse_CourseId(studentId, courseId);
+            if (!alreadyEnrolled) {
+                User student = userRepository.findById(studentId).orElse(null);
+                if (student != null) {
+                    Enrollment enrollment = new Enrollment();
+                    enrollment.setStudent(student);
+                    enrollment.setCourse(course);
+                    enrollment.setEnrolledAt(java.time.LocalDateTime.now());
+                    enrollmentRepository.save(enrollment);
+                }
+            }
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AssignmentResponse> assignmentPage = assignmentService.getAssignmentsByCourseForStudent(
                 courseId, studentId, pageable

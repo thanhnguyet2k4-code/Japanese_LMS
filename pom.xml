@@ -14,7 +14,7 @@
     <name>Japanese_LMS</name>
     <description>Japanese_LMS</description>
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
     <dependencies>
         <dependency>

@@ -21,4 +21,6 @@ public interface SubmissionService {
     );
 
     org.springframework.core.io.Resource getSubmissionFileResource(Long submissionId, Long currentUserId);
+
+    SubmissionResponse gradeSubmission(Long submissionId, java.math.BigDecimal grade, String feedback, Long instructorId);
 }

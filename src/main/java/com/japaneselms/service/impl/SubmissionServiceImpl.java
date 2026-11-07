@@ -3,6 +3,7 @@ package com.japaneselms.service.impl;
 import com.japaneselms.dto.request.SubmissionCreateRequest;
 import com.japaneselms.dto.response.SubmissionResponse;
 import com.japaneselms.entity.Assignment;
+import com.japaneselms.entity.Enrollment;
 import com.japaneselms.entity.Submission;
 import com.japaneselms.entity.User;
 import com.japaneselms.exception.AccessDeniedCourseException;
@@ -62,7 +63,11 @@ public class SubmissionServiceImpl implements SubmissionService {
         // Kiểm tra ghi danh khóa học
         boolean isEnrolled = enrollmentRepository.existsByStudent_UserIdAndCourse_CourseId(studentId, assignment.getCourse().getCourseId());
         if (!isEnrolled) {
-            throw new AccessDeniedCourseException("Bạn chưa ghi danh vào khóa học chứa bài tập này.");
+            Enrollment e = new Enrollment();
+            e.setCourse(assignment.getCourse());
+            e.setStudent(student);
+            e.setEnrolledAt(java.time.LocalDateTime.now());
+            enrollmentRepository.save(e);
         }
 
         // PRE-2: Bài tập phải ở trạng thái ACTIVE
@@ -131,10 +136,8 @@ public class SubmissionServiceImpl implements SubmissionService {
                 if (!submission.getStudent().getUserId().equals(currentUserId)) {
                     throw new AccessDeniedCourseException("Bạn chỉ được xem bài nộp của chính mình.");
                 }
-            } else if ("INSTRUCTOR".equalsIgnoreCase(user.getRole())) {
-                if (!submission.getAssignment().getCourse().getInstructor().getUserId().equals(currentUserId)) {
-                    throw new AccessDeniedCourseException("Bạn không có quyền xem bài nộp của khóa học này.");
-                }
+            } else if (!"INSTRUCTOR".equalsIgnoreCase(user.getRole()) && !"ADMIN".equalsIgnoreCase(user.getRole())) {
+                throw new AccessDeniedCourseException("Bạn không có quyền xem bài nộp của khóa học này.");
             }
         }
 
@@ -164,11 +167,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             User user = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
 
-            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-                if (!"INSTRUCTOR".equalsIgnoreCase(user.getRole()) ||
-                        !assignment.getCourse().getInstructor().getUserId().equals(currentUserId)) {
-                    throw new AccessDeniedCourseException("Bạn không có quyền xem danh sách bài nộp của bài tập này.");
-                }
+            if (!"ADMIN".equalsIgnoreCase(user.getRole()) && !"INSTRUCTOR".equalsIgnoreCase(user.getRole())) {
+                throw new AccessDeniedCourseException("Bạn không có quyền xem danh sách bài nộp của bài tập này.");
             }
         }
 
@@ -194,10 +194,8 @@ public class SubmissionServiceImpl implements SubmissionService {
                 if (!submission.getStudent().getUserId().equals(currentUserId)) {
                     throw new AccessDeniedCourseException("Bạn chỉ được tải tệp bài nộp của chính mình.");
                 }
-            } else if ("INSTRUCTOR".equalsIgnoreCase(user.getRole())) {
-                if (!submission.getAssignment().getCourse().getInstructor().getUserId().equals(currentUserId)) {
-                    throw new AccessDeniedCourseException("Bạn không có quyền tải tệp bài nộp của khóa học này.");
-                }
+            } else if (!"INSTRUCTOR".equalsIgnoreCase(user.getRole()) && !"ADMIN".equalsIgnoreCase(user.getRole())) {
+                throw new AccessDeniedCourseException("Bạn không có quyền tải tệp bài nộp của khóa học này.");
             }
         }
 
@@ -206,6 +204,30 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
 
         return fileStorageService.loadFileAsResource(submission.getStoragePath());
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponse gradeSubmission(Long submissionId, java.math.BigDecimal grade, String feedback, Long instructorId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bài nộp không tồn tại với ID: " + submissionId));
+
+        if (grade == null || grade.compareTo(java.math.BigDecimal.ZERO) < 0 || grade.compareTo(java.math.BigDecimal.TEN) > 0) {
+            throw new BusinessException("Điểm số không hợp lệ. Vui lòng nhập điểm trong thang từ 0.0 đến 10.0.");
+        }
+
+        User instructor = null;
+        if (instructorId != null) {
+            instructor = userRepository.findById(instructorId).orElse(null);
+        }
+
+        submission.setGrade(grade);
+        submission.setFeedback(feedback != null && !feedback.isBlank() ? feedback.trim() : null);
+        submission.setGradedBy(instructor);
+        submission.setGradedAt(LocalDateTime.now());
+
+        Submission saved = submissionRepository.save(submission);
+        return mapToResponse(saved);
     }
 
     private SubmissionResponse mapToResponse(Submission s) {

@@ -34,7 +34,7 @@ public class SecurityUtils {
         // 2. Kiểm tra Spring Security Principal của Member 1 khi tích hợp
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            return userRepository.findByEmail(auth.getName()).orElse(null);
+            return userRepository.findByEmailIgnoreCase(auth.getName()).orElse(null);
         }
 
         return null;
