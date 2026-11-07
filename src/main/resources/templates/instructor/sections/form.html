@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Phần của khóa học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">GIẢNG VIÊN · FORM PHẦN HỌC</p>
+        <h1 class="page-title" th:text="${isEdit} ? 'Chỉnh sửa phần' : 'Thêm phần mới'">Thêm phần</h1>
+        <p th:text="${course.courseName}">Khóa học</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline"
+           th:href="@{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
+            ← Danh sách bài học
+        </a>
+    </div>
+
+    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <form method="post"
+              th:action="${isEdit}
+                  ? @{/instructor/courses/{courseId}/sections/{sectionId}/edit(courseId=${course.courseId}, sectionId=${sectionId})}
+                  : @{/instructor/courses/{courseId}/sections(courseId=${course.courseId})}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="sectionTitle">Tên phần *</label>
+                <input id="sectionTitle" name="sectionTitle" type="text"
+                       th:value="${section.sectionTitle}" maxlength="200" required
+                       placeholder="VD: Giới thiệu tổng quát">
+            </div>
+
+            <div class="field">
+                <label for="sectionOrder">Thứ tự phần * (Phần 0, Phần 1, ...)</label>
+                <input id="sectionOrder" name="sectionOrder" type="number" min="0"
+                       th:value="${section.sectionOrder}" required>
+            </div>
+
+            <div class="lesson-toolbar">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo phần'">Lưu</button>
+            </div>
+        </form>
+    </section>
+</section>
+</body>
+</html>

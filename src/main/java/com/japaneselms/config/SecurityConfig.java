@@ -20,6 +20,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/register",
+                                "/403",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
@@ -27,7 +28,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                         .requestMatchers("/student", "/student/**").hasRole("STUDENT")
-                        .requestMatchers("/instructor", "/instructor/**").hasRole("INSTRUCTOR")
+                        .requestMatchers("/instructor", "/instructor/**")
+                        .hasAnyRole("INSTRUCTOR", "ADMIN")
+                        .requestMatchers("/files/materials/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -38,7 +41,10 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                );
+                )
+                .exceptionHandling(exceptions -> exceptions
+                .accessDeniedPage("/403")
+        );
 
         return http.build();
     }

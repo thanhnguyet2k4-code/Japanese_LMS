@@ -1,4 +1,11 @@
 package com.japaneselms.repository;
 
-public class AssignmentRepository {
+import com.japaneselms.entity.Assignment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
+
+    boolean existsByLesson_LessonId(Long lessonId);
+
+    boolean existsByCourse_CourseId(Long courseId);
 }

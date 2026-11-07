@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Danh sách bài học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">S10 · DANH SÁCH BÀI HỌC</p>
+        <h1 class="page-title" th:text="${course.courseName}">Khóa học</h1>
+        <p>Chia khóa học thành các phần, mỗi phần gồm nhiều bài học và tài liệu.</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:href="@{/instructor}">← Khóa học của tôi</a>
+        <a class="btn btn-primary"
+           th:href="@{/instructor/courses/{courseId}/sections/new(courseId=${course.courseId})}">
+            + Thêm phần
+        </a>
+        <a class="btn btn-outline"
+           th:href="@{/instructor/courses/{courseId}/lessons/new(courseId=${course.courseId})}">
+            + Thêm bài học
+        </a>
+    </div>
+
+    <div class="message success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
+    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <div class="card" th:if="${groups == null or #lists.isEmpty(groups)}">
+        <div class="empty-state-box">
+            <strong>Chưa có phần hoặc bài học</strong>
+            <p>Hãy tạo phần đầu tiên, sau đó thêm bài học vào phần đó.</p>
+        </div>
+    </div>
+
+    <details class="section-block card" open th:each="group : ${groups}">
+        <summary class="section-header">
+            <div>
+                <strong class="section-title" th:text="${group.title}">Tên phần</strong>
+                <p class="muted" th:if="${group.sectionId != null}"
+                   th:text="'Phần ' + ${group.sectionOrder}">Phần 0</p>
+            </div>
+            <span class="muted" th:text="${group.lessonCount} + ' bài'">3 bài</span>
+        </summary>
+
+        <div class="lesson-toolbar" th:if="${group.sectionId != null}">
+            <a class="btn btn-outline"
+               th:href="@{/instructor/courses/{courseId}/lessons/new(courseId=${course.courseId}, sectionId=${group.sectionId})}">
+                + Thêm bài học vào phần
+            </a>
+            <a class="btn btn-outline"
+               th:href="@{/instructor/courses/{courseId}/sections/{sectionId}/edit(courseId=${course.courseId}, sectionId=${group.sectionId})}">
+                Sửa phần
+            </a>
+            <form th:action="@{/instructor/courses/{courseId}/sections/{sectionId}/delete(courseId=${course.courseId}, sectionId=${group.sectionId})}"
+                  method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Xóa phần này? (Chỉ xóa được khi phần không còn bài học)');">
+                    Xóa phần
+                </button>
+            </form>
+        </div>
+
+        <p class="muted section-empty" th:if="${#lists.isEmpty(group.lessons)}">Phần này chưa có bài học.</p>
+
+        <div class="section-lesson-row" th:each="lesson : ${group.lessons}">
+            <div class="section-lesson-info">
+                <strong th:text="${lesson.lessonTitle}">Tiêu đề</strong>
+                <p class="muted">
+                    <span th:text="'Bài ' + ${lesson.lessonOrder}">Bài 1</span> ·
+                    <span class="status-pill"
+                          th:classappend="${lesson.lessonStatus == 'ACTIVE'} ? 'status-active' : 'status-inactive'"
+                          th:text="${lesson.lessonStatus}">ACTIVE</span> ·
+                    <span th:text="${lesson.materialCount} + ' tài liệu'">0 tài liệu</span>
+                </p>
+            </div>
+            <div class="lesson-actions">
+                <a class="btn btn-outline"
+                   th:href="@{/instructor/courses/{courseId}/lessons/{lessonId}/edit(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">
+                    Sửa
+                </a>
+                <a class="btn btn-outline"
+                   th:href="@{/instructor/lessons/{lessonId}/materials(lessonId=${lesson.lessonId})}">
+                    Tài liệu
+                </a>
+                <a class="btn btn-outline"
+                   th:href="@{/instructor/courses/{courseId}/lessons/{lessonId}/preview(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">
+                    Xem
+                </a>
+                <form th:if="${lesson.lessonStatus == 'ACTIVE'}"
+                      th:action="@{/instructor/courses/{courseId}/lessons/{lessonId}/deactivate(courseId=${course.courseId}, lessonId=${lesson.lessonId})}"
+                      method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Chuyển bài học sang ngừng sử dụng?');">
+                        Ngừng dùng
+                    </button>
+                </form>
+                <form th:action="@{/instructor/courses/{courseId}/lessons/{lessonId}/delete(courseId=${course.courseId}, lessonId=${lesson.lessonId})}"
+                      method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Xóa vĩnh viễn bài học này cùng toàn bộ tài liệu và tiến độ học? Hành động không thể hoàn tác.');">
+                        Xóa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </details>
+</section>
+</body>
+</html>

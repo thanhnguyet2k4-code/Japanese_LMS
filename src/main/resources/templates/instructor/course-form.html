@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Khóa học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">GIẢNG VIÊN · FORM KHÓA HỌC</p>
+        <h1 class="page-title" th:text="${isEdit} ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới'">Thêm khóa học</h1>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:href="@{/instructor}">← Danh sách khóa học</a>
+    </div>
+
+    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <form method="post" enctype="multipart/form-data"
+              th:object="${courseForm}"
+              th:action="${isEdit}
+                  ? @{/instructor/courses/{courseId}/edit(courseId=${courseId})}
+                  : @{/instructor/courses}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="courseName">Tên khóa học *</label>
+                <input id="courseName" type="text" th:field="*{courseName}" maxlength="200" required>
+                <p class="field-error" th:if="${#fields.hasErrors('courseName')}" th:errors="*{courseName}"></p>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="jlptLevel">Cấp độ JLPT *</label>
+                    <select id="jlptLevel" th:field="*{jlptLevel}">
+                        <option value="N5">N5</option>
+                        <option value="N4">N4</option>
+                        <option value="N3">N3</option>
+                        <option value="N2">N2</option>
+                        <option value="N1">N1</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('jlptLevel')}" th:errors="*{jlptLevel}"></p>
+                </div>
+                <div class="field">
+                    <label for="courseStatus">Trạng thái *</label>
+                    <select id="courseStatus" th:field="*{courseStatus}">
+                        <option value="ACTIVE">ACTIVE - Đang mở</option>
+                        <option value="INACTIVE">INACTIVE - Ngừng mở</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('courseStatus')}" th:errors="*{courseStatus}"></p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="coverImage">Ảnh nền khóa học (JPG, PNG, WEBP, GIF · tối đa 5MB)</label>
+                <img id="coverPreview" class="course-cover" alt="Xem trước ảnh nền" style="display:none;">
+                <img id="currentCover" class="course-cover" th:if="${isEdit}"
+                     th:src="@{/files/course-images/{courseId}(courseId=${courseId})}"
+                     alt="Ảnh nền hiện tại" onerror="this.style.display='none'">
+                <input id="coverImage" name="coverImage" type="file"
+                       accept="image/png,image/jpeg,image/webp,image/gif">
+                <p class="muted" th:if="${isEdit}">Để trống nếu muốn giữ ảnh hiện tại.</p>
+            </div>
+
+            <div class="lesson-toolbar">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo khóa học'">Lưu</button>
+            </div>
+        </form>
+    </section>
+
+    <script>
+        document.getElementById('coverImage').addEventListener('change', function () {
+            var preview = document.getElementById('coverPreview');
+            var current = document.getElementById('currentCover');
+            var file = this.files && this.files[0];
+            if (!file) {
+                preview.style.display = 'none';
+                if (current) { current.style.display = ''; }
+                return;
+            }
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            if (current) { current.style.display = 'none'; }
+        });
+    </script>
+</section>
+</body>
+</html>

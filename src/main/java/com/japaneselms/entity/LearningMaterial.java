@@ -1,6 +1,5 @@
 package com.japaneselms.entity;
 
-
 import jakarta.persistence.*;
 import org.hibernate.annotations.Nationalized;
 
@@ -42,6 +41,9 @@ public class LearningMaterial {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Transient
+    private String youtubeEmbedUrl;
 
     public LearningMaterial() {
     }
@@ -123,5 +125,13 @@ public class LearningMaterial {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getYoutubeEmbedUrl() {
+        return youtubeEmbedUrl;
+    }
+
+    public void setYoutubeEmbedUrl(String youtubeEmbedUrl) {
+        this.youtubeEmbedUrl = youtubeEmbedUrl;
     }
 }
