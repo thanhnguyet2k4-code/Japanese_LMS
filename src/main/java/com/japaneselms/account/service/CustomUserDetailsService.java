@@ -1,4 +1,3 @@
-
 package com.japaneselms.account.service;
 
 import com.japaneselms.entity.User;
@@ -21,9 +20,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmailIgnoreCase(email)
+        if (email == null || email.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Email không được để trống.");
+        }
+
+        String cleanEmail = email.trim();
+
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Không tìm thấy tài khoản với email: " + email
+                        "Không tìm thấy tài khoản với email: " + cleanEmail
                 ));
 
         if ("STUDENT".equalsIgnoreCase(user.getRole())
@@ -31,6 +36,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(
                     "Tài khoản sinh viên chưa được phê duyệt."
             );
+        }
+
+        if (!user.isActive()) {
+            throw new UsernameNotFoundException("Tài khoản đã bị vô hiệu hóa.");
         }
 
         return user;

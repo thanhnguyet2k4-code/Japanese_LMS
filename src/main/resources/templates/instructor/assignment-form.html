@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${isEdit ? 'Chỉnh sửa bài tập — S15' : 'Tạo bài tập mới — S15'}">S15 — Quản lý bài tập</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --ink: #172b40;
+            --muted: #657789;
+            --line: #e2e9ee;
+            --accent: #087f77;
+            --accent-hover: #066c66;
+            --bg-page: #f4f8f9;
+        }
+        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
+        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
+        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 10px 22px; border: none; transition: all .2s; }
+        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(8,127,119,0.25); }
+        .form-label { font-weight: 700; color: #344b5c; font-size: 0.92rem; }
+        .form-control, .form-select { border-radius: 10px; border-color: #d5e0e7; padding: 10px 14px; font-size: 0.95rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(8,127,119,0.15); }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="container py-4 flex-grow-1" style="max-width: 860px;">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/courses}" class="text-decoration-none text-muted">Khóa học</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/instructor/courses/{id}/assignments(id=${course != null ? course.courseId : assignmentForm.courseId})}" 
+                       class="text-decoration-none text-muted">
+                        Danh sách bài tập
+                    </a>
+                </li>
+                <li class="breadcrumb-item active fw-bold text-teal" aria-current="page" 
+                    th:text="${isEdit ? 'Chỉnh sửa bài tập (S15)' : 'Tạo bài tập mới (S15)'}">Màn hình S15</li>
+            </ol>
+        </nav>
+
+        <!-- Notification Alerts -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="alert-circle" class="text-danger"></i>
+                <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card card-custom bg-white p-4 p-md-5">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-4 mb-4">
+                <div>
+                    <span class="badge rounded-pill bg-light text-muted border px-3 py-1 mb-2 fw-semibold">Màn hình S15 — MF-04</span>
+                    <h1 class="h3 fw-extrabold mb-1" style="color: var(--ink);" 
+                        th:text="${isEdit ? 'Chỉnh sửa bài tập' : 'Tạo mới bài tập'}">Quản lý bài tập</h1>
+                    <p class="text-muted small mb-0" th:if="${course != null}">
+                        Khóa học: <strong th:text="${course.courseName}">Khóa học N5</strong>
+                    </p>
+                </div>
+                <div class="d-none d-sm-block">
+                    <div class="rounded-4 p-3 d-flex align-items-center justify-content-center" style="background: #e6f4f2; width: 56px; height: 56px;">
+                        <i data-lucide="clipboard-pen" style="color: var(--accent); width: 28px; height: 28px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form th:action="${isEdit ? '/instructor/assignments/' + assignmentId + '/edit' : '/instructor/courses/' + assignmentForm.courseId + '/assignments/new'}" 
+                  th:object="${assignmentForm}" method="post">
+
+                <input type="hidden" th:field="*{courseId}">
+                <input type="hidden" th:field="*{assignmentId}" th:if="${isEdit}">
+
+                <!-- Tiêu đề bài tập -->
+                <div class="mb-4">
+                    <label for="title" class="form-label">
+                        Tiêu đề bài tập <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="title" th:field="*{title}" 
+                           placeholder="Ví dụ: Bài tập luyện dịch câu Minna no Nihongo Bài 1"
+                           th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''" required>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">
+                        Vui lòng nhập tiêu đề bài tập.
+                    </div>
+                    <div class="form-text text-muted small">Tên bài tập rõ ràng giúp học viên dễ dàng định vị bài làm.</div>
+                </div>
+
+                <!-- Bài học liên kết (Tùy chọn) -->
+                <div class="mb-4">
+                    <label for="lessonId" class="form-label">
+                        Gắn với bài học (Tùy chọn)
+                    </label>
+                    <select class="form-select" id="lessonId" th:field="*{lessonId}">
+                        <option value="">-- Không gắn với bài học cụ thể (Bài tập chung của khóa) --</option>
+                        <option th:each="lesson : ${lessons}" 
+                                th:value="${lesson.lessonId}" 
+                                th:text="${'Bài ' + lesson.lessonOrder + ': ' + lesson.lessonTitle}">Bài học 1</option>
+                    </select>
+                    <div class="form-text text-muted small">Quy tắc nghiệp vụ: Bài tập có thể gắn với bài học hoặc không gắn (lesson_id cho phép NULL).</div>
+                </div>
+
+                <!-- Hạn nộp bài -->
+                <div class="mb-4">
+                    <label for="dueAt" class="form-label">
+                        Hạn nộp bài (Tùy chọn)
+                    </label>
+                    <input type="datetime-local" class="form-control" id="dueAt" th:field="*{dueAt}" 
+                           style="max-width: 320px;">
+                    <div class="form-text text-muted small">Học viên sẽ được cảnh báo khi bài tập đến gần hạn hoặc quá hạn nộp.</div>
+                </div>
+
+                <!-- Trạng thái (Nếu là chế độ sửa) -->
+                <div class="mb-4" th:if="${isEdit}">
+                    <label for="assignmentStatus" class="form-label">Trạng thái bài tập</label>
+                    <select class="form-select" id="assignmentStatus" th:field="*{assignmentStatus}" style="max-width: 250px;">
+                        <option value="ACTIVE">Kích hoạt (ACTIVE)</option>
+                        <option value="INACTIVE">Ngừng hoạt động (INACTIVE)</option>
+                    </select>
+                </div>
+
+                <!-- Hướng dẫn / Đề bài -->
+                <div class="mb-4">
+                    <label for="instructions" class="form-label">
+                        Hướng dẫn làm bài &amp; Yêu cầu chi tiết
+                    </label>
+                    <textarea class="form-control" id="instructions" rows="7" th:field="*{instructions}" 
+                              placeholder="Nhập nội dung đề bài, các câu hỏi ngữ pháp, bài tập Kanji, hoặc yêu cầu tệp đính kèm (hỗ trợ văn bản dài)..."></textarea>
+                </div>
+
+                <!-- Nút thao tác -->
+                <div class="d-flex align-items-center justify-content-end gap-3 pt-3 border-top">
+                    <a th:href="@{/instructor/courses/{id}/assignments(id=${assignmentForm.courseId})}" 
+                       class="btn btn-light border px-4 py-2 rounded-3 text-secondary fw-bold">
+                        Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn btn-teal">
+                        <i data-lucide="save" class="me-1" style="width: 18px; height: 18px; vertical-align: middle;"></i>
+                        <span th:text="${isEdit ? 'Lưu thay đổi' : 'Tạo bài tập'}">Lưu bài tập</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

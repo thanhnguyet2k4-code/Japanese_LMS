@@ -16,7 +16,7 @@
 
         <h1 class="error-title">Bạn chưa có quyền truy cập</h1>
 
-        <p class="error-message">
+        <p class="error-message" th:text="${errorMessage != null ? errorMessage : 'Xin lỗi, tài khoản của bạn không được phép sử dụng chức năng này. Vui lòng quay lại trang phù hợp với vai trò của mình.'}">
             Xin lỗi, tài khoản của bạn không được phép sử dụng chức năng này.
             Vui lòng quay lại trang phù hợp với vai trò của mình.
         </p>

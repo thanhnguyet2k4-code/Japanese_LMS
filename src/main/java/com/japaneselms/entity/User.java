@@ -192,7 +192,10 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String normalizedRole = role.toUpperCase(Locale.ROOT);
+        if (role == null || role.isBlank()) {
+            return List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        }
+        String normalizedRole = role.trim().toUpperCase(Locale.ROOT);
 
         if (!normalizedRole.startsWith("ROLE_")) {
             normalizedRole = "ROLE_" + normalizedRole;

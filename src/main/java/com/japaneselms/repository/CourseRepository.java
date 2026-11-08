@@ -17,29 +17,23 @@ import java.util.Optional;
  */
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    // ==================== MF-03: LESSON MANAGEMENT ====================
+    // MF-04: Lay danh sach khoa hoc cua Instructor.
+    List<Course> findByInstructor_UserId(Long instructorId);
 
-    /**
-     * Lay danh sach khoa hoc cua giang vien, sap xep moi nhat truoc.
-     */
+    // MF-03: Lay danh sach khoa hoc cua Instructor, moi nhat truoc.
     List<Course> findByInstructor_UserIdOrderByCreatedAtDesc(Long instructorId);
 
-    /**
-     * Tim khoa hoc kem thong tin Instructor theo courseId.
-     */
+    // MF-03: Tim khoa hoc kem thong tin Instructor.
     @Query("""
             select c from Course c
             join fetch c.instructor
             where c.courseId = :courseId
             """)
-    Optional<Course> findWithInstructorById(@Param("courseId") Long courseId);
+    Optional<Course> findWithInstructorById(
+            @Param("courseId") Long courseId
+    );
 
-
-    // ==================== MF-02: COURSE MANAGEMENT ====================
-
-    /**
-     * UC06 - Tim kiem khoa hoc ACTIVE theo ten va cap do JLPT.
-     */
+    // MF-02: Tim kiem khoa hoc ACTIVE theo ten va cap do JLPT.
     @EntityGraph(attributePaths = "instructor")
     @Query(value = """
             SELECT c FROM Course c
@@ -56,31 +50,33 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Page<Course> searchActiveCourses(
             @Param("pattern") String pattern,
             @Param("level") String level,
-            Pageable pageable);
+            Pageable pageable
+    );
 
-    /**
-     * UC07 - Tim khoa hoc theo id va trang thai, kem Instructor.
-     */
+    // MF-02: Tim khoa hoc theo id va trang thai, kem Instructor.
     @EntityGraph(attributePaths = "instructor")
     Optional<Course> findByCourseIdAndCourseStatus(
-            Long courseId, String courseStatus);
+            Long courseId,
+            String courseStatus
+    );
 
-    /**
-     * UC08 - Danh sach khoa hoc cua Instructor, co phan trang.
-     */
+    // MF-02 / MF-04: Lay khoa hoc cua Instructor co phan trang.
     @EntityGraph(attributePaths = "instructor")
     Page<Course> findByInstructor_UserId(
-            Long instructorId, Pageable pageable);
+            Long instructorId,
+            Pageable pageable
+    );
 
-    /**
-     * UC08 - Kiem tra trung ten khoa hoc khi tao moi.
-     */
+    // MF-02: Kiem tra trung ten khoa hoc khi tao moi.
     boolean existsByInstructor_UserIdAndCourseNameIgnoreCase(
-            Long instructorId, String courseName);
+            Long instructorId,
+            String courseName
+    );
 
-    /**
-     * UC08 - Kiem tra trung ten khi cap nhat, loai tru khoa hoc hien tai.
-     */
+    // MF-02: Kiem tra trung ten khi cap nhat.
     boolean existsByInstructor_UserIdAndCourseNameIgnoreCaseAndCourseIdNot(
-            Long instructorId, String courseName, Long courseId);
+            Long instructorId,
+            String courseName,
+            Long courseId
+    );
 }

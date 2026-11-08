@@ -11,25 +11,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository quan ly du lieu Enrollment.
  */
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
-    // ==================== MF-03: LESSON MANAGEMENT ====================
-
-    /**
-     * Xoa tat ca dang ky cua mot khoa hoc.
-     */
+    // MF-03: Xoa tat ca dang ky cua mot khoa hoc.
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from Enrollment e where e.course.courseId = :courseId")
     void deleteAllByCourseId(@Param("courseId") Long courseId);
 
-    /**
-     * Lay danh sach khoa hoc da dang ky cua Student,
-     * kem Course va Instructor, moi nhat truoc.
-     */
+    // MF-03: Lay danh sach khoa hoc da dang ky cua Student,
+    // kem Course va Instructor, moi nhat truoc.
     @Query("""
             select e from Enrollment e
             join fetch e.course c
@@ -38,27 +33,28 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             order by e.enrolledAt desc
             """)
     List<Enrollment> findWithCourseByStudentId(
-            @Param("studentId") Long studentId);
+            @Param("studentId") Long studentId
+    );
 
-
-    // ==================== MF-02: COURSE MANAGEMENT ====================
-
-    /**
-     * UC07/UC09 - Kiem tra Student da dang ky khoa hoc chua.
-     */
+    // MF-02 / MF-04: Kiem tra Student da dang ky khoa hoc chua.
     boolean existsByStudent_UserIdAndCourse_CourseId(
-            Long studentId, Long courseId);
+            Long studentId,
+            Long courseId
+    );
 
-    /**
-     * UC08 - Kiem tra khoa hoc da co hoc vien dang ky chua.
-     */
+    // MF-04: Tim Enrollment theo Student va Course.
+    Optional<Enrollment> findByStudent_UserIdAndCourse_CourseId(
+            Long studentId,
+            Long courseId
+    );
+
+    // MF-02: Kiem tra khoa hoc da co hoc vien dang ky chua.
     boolean existsByCourse_CourseId(Long courseId);
 
-    /**
-     * UC10 - Lay danh sach dang ky cua Student co phan trang.
-     * EntityGraph nap Course va Instructor de tranh N+1.
-     */
+    // MF-02: Lay danh sach dang ky cua Student co phan trang.
     @EntityGraph(attributePaths = {"course", "course.instructor"})
     Page<Enrollment> findByStudent_UserId(
-            Long studentId, Pageable pageable);
+            Long studentId,
+            Pageable pageable
+    );
 }

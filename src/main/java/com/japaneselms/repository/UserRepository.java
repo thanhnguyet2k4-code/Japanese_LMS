@@ -15,6 +15,7 @@ public interface UserRepository extends
         JpaSpecificationExecutor<User> {
 
     Optional<User> findByEmailIgnoreCase(String email);
+    Optional<User> findByEmail(String email);
 
     boolean existsByEmailIgnoreCase(String email);
 
@@ -39,3 +40,4 @@ public interface UserRepository extends
     long countByRoleIgnoreCaseAndActiveTrue(String role);
 
 }
+
