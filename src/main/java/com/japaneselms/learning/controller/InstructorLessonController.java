@@ -29,7 +29,7 @@ public class InstructorLessonController {
     }
 
     // Trang danh sach khoa hoc cua giang vien
-    @GetMapping("/instructor")
+    @GetMapping("/instructor/lesson-courses")
     public String instructorHome(
             @AuthenticationPrincipal User currentUser,
             Model model) {

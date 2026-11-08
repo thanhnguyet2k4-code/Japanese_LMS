@@ -1,3 +1,4 @@
+
 package com.japaneselms.course.dto;
 
 import jakarta.validation.constraints.NotBlank;
@@ -5,19 +6,26 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * DTO cua form tao/sua khoa hoc.
+ * Khong chua courseId hoac instructor de tranh mass assignment.
+ */
 public class CourseForm {
 
     @NotBlank(message = "Vui lòng nhập tên khóa học.")
-    @Size(max = 200, message = "Tên khóa học không được vượt quá 200 ký tự.")
+    @Size(min = 5, max = 150,
+            message = "Tên khóa học phải từ 5 đến 150 ký tự.")
     private String courseName;
 
     @NotBlank(message = "Vui lòng chọn cấp độ JLPT.")
-    @Pattern(regexp = "^N[1-5]$", message = "Cấp độ JLPT không hợp lệ.")
+    @Pattern(regexp = "^N[1-5]$",
+            message = "Cấp độ JLPT không hợp lệ.")
     private String jlptLevel = "N5";
 
-    @NotBlank(message = "Vui lòng chọn trạng thái khóa học.")
-    @Pattern(regexp = "^(ACTIVE|INACTIVE)$", message = "Trạng thái khóa học không hợp lệ.")
-    private String courseStatus = "ACTIVE";
+    @NotBlank(message = "Vui lòng nhập mô tả khóa học.")
+    @Size(max = 2000,
+            message = "Mô tả không được vượt quá 2000 ký tự.")
+    private String description;
 
     private MultipartFile coverImage;
 
@@ -26,7 +34,7 @@ public class CourseForm {
     }
 
     public void setCourseName(String courseName) {
-        this.courseName = courseName;
+        this.courseName = courseName == null ? null : courseName.trim();
     }
 
     public String getJlptLevel() {
@@ -37,12 +45,12 @@ public class CourseForm {
         this.jlptLevel = jlptLevel;
     }
 
-    public String getCourseStatus() {
-        return courseStatus;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCourseStatus(String courseStatus) {
-        this.courseStatus = courseStatus;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public MultipartFile getCoverImage() {

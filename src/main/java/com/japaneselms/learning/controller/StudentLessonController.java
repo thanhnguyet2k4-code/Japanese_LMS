@@ -30,7 +30,7 @@ public class StudentLessonController {
     }
 
     // Trang danh sach khoa hoc da dang ky cua hoc vien
-    @GetMapping("/student")
+    @GetMapping("/student/lesson-courses")
     public String studentHome(
             @AuthenticationPrincipal User currentUser,
             Model model) {

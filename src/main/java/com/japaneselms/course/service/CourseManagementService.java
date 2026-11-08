@@ -78,6 +78,7 @@ public class CourseManagementService {
 
         Course course = new Course();
         course.setInstructor(currentUser);
+        course.setCourseStatus(CourseStatus.ACTIVE);
         applyForm(course, form);
         course = courseRepository.save(course);
 
@@ -106,6 +107,30 @@ public class CourseManagementService {
         }
         return course;
     }
+    /**
+     * Cap nhat rieng anh bia khoa hoc.
+     * Khong thay doi thong tin khoa hoc khac.
+     */
+    @Transactional
+    public void updateCourseImage(User currentUser, Long courseId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return;
+        }
+
+        Course course = lessonService.getManageableCourse(currentUser, courseId);
+
+        validateCoverImage(file);
+
+        String oldImage = course.getCoverImagePath();
+        String newImage = saveCoverImage(courseId, file);
+
+        course.setCoverImagePath(newImage);
+        courseRepository.save(course);
+
+        if (oldImage != null) {
+            deleteCoverImage(oldImage);
+        }
+    }
 
     @Transactional(readOnly = true)
     public CourseForm getForm(User currentUser, Long courseId) {
@@ -113,7 +138,7 @@ public class CourseManagementService {
         CourseForm form = new CourseForm();
         form.setCourseName(course.getCourseName());
         form.setJlptLevel(course.getJlptLevel());
-        form.setCourseStatus(course.getCourseStatus());
+        form.setDescription(course.getDescription());
         return form;
     }
 
@@ -172,7 +197,7 @@ public class CourseManagementService {
     private void applyForm(Course course, CourseForm form) {
         course.setCourseName(form.getCourseName().trim());
         course.setJlptLevel(form.getJlptLevel().trim().toUpperCase());
-        course.setCourseStatus(form.getCourseStatus().trim().toUpperCase());
+        course.setDescription(form.getDescription().trim());
     }
 
     private void validateCoverImage(MultipartFile file) {

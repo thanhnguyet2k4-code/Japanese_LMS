@@ -1,93 +1,387 @@
+
 <!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/InstructorLayout}">
-<head>
-    <title>Khóa học</title>
-</head>
-<body>
-<section layout:fragment="content" class="lesson-module">
-    <header class="page-header">
-        <p class="page-subtitle">GIẢNG VIÊN · FORM KHÓA HỌC</p>
-        <h1 class="page-title" th:text="${isEdit} ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới'">Thêm khóa học</h1>
-    </header>
 
-    <div class="lesson-toolbar">
-        <a class="btn btn-outline" th:href="@{/instructor}">← Danh sách khóa học</a>
+<head>
+    <title>Quản lý khóa học</title>
+
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/course.css}">
+    </th:block>
+</head>
+
+<body>
+
+<section layout:fragment="content" class="course-page">
+
+    <!-- Thong bao -->
+    <div class="alert alert-success"
+         th:if="${successMessage != null}"
+         th:text="${successMessage}">
     </div>
 
-    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+    <div class="alert alert-danger"
+         th:if="${errorMessage != null}"
+         th:text="${errorMessage}">
+    </div>
 
-    <section class="card">
-        <form method="post" enctype="multipart/form-data"
-              th:object="${courseForm}"
-              th:action="${isEdit}
-                  ? @{/instructor/courses/{courseId}/edit(courseId=${courseId})}
-                  : @{/instructor/courses}">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <!-- =========================================================
+         CHE DO DANH SACH KHOA HOC - MF-02
+         ========================================================= -->
 
-            <div class="field">
-                <label for="courseName">Tên khóa học *</label>
-                <input id="courseName" type="text" th:field="*{courseName}" maxlength="200" required>
-                <p class="field-error" th:if="${#fields.hasErrors('courseName')}" th:errors="*{courseName}"></p>
+    <th:block th:if="${mode == 'list'}">
+
+        <div class="page-heading">
+            <header>
+                <h1 class="page-title">Quản lý khóa học</h1>
+                <p class="page-subtitle">
+                    Bạn có
+                    <strong th:text="${totalElements}">0</strong>
+                    khóa học.
+                </p>
+            </header>
+
+            <a th:href="@{/instructor/courses/new}"
+               class="btn btn-primary">
+                + Tạo khóa học mới
+            </a>
+        </div>
+
+        <section class="card">
+
+            <div class="table-wrapper" th:if="${!courses.isEmpty()}">
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên khóa học</th>
+                        <th>Cấp độ</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="c, stat : ${courses.content}">
+
+                        <td th:text="${currentPage * courses.size + stat.index + 1}">
+                            1
+                        </td>
+
+                        <td class="cell-name"
+                            th:text="${c.courseName}">
+                            Tên khóa học
+                        </td>
+
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${'badge-' + #strings.toLowerCase(c.jlptLevel)}"
+                                  th:text="${c.jlptLevel}">
+                                N5
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${c.courseStatus == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'"
+                                  th:text="${c.courseStatus}">
+                                ACTIVE
+                            </span>
+                        </td>
+
+                        <td th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">
+                            01/01/2026
+                        </td>
+
+                        <td class="cell-actions">
+
+                            <a th:href="@{/instructor/courses/{id}/edit(id=${c.courseId})}"
+                               class="btn btn-outline btn-sm">
+                                Sửa
+                            </a>
+
+                            <form th:if="${c.courseStatus == 'ACTIVE'}"
+                                  class="inline-form"
+                                  th:action="@{/instructor/courses/{id}/deactivate(id=${c.courseId})}"
+                                  method="post"
+                                  onsubmit="return confirm('Bạn có chắc muốn ngừng hoạt động khóa học này? Khóa học đã có dữ liệu liên quan sẽ chuyển sang INACTIVE; khóa học chưa có dữ liệu sẽ bị xóa.');">
+
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">
+                                    Ngừng hoạt động
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="form-grid">
-                <div class="field">
-                    <label for="jlptLevel">Cấp độ JLPT *</label>
+            <!-- Khong co du lieu -->
+            <div class="empty-state" th:if="${courses.isEmpty()}">
+
+                <p th:if="${totalElements == 0}">
+                    Bạn chưa có khóa học nào.
+                </p>
+
+                <p th:if="${totalElements > 0}">
+                    Trang này không có dữ liệu.
+                </p>
+
+                <a th:if="${totalElements == 0}"
+                   th:href="@{/instructor/courses/new}"
+                   class="btn btn-primary">
+                    Tạo khóa học đầu tiên
+                </a>
+
+                <a th:if="${totalElements > 0}"
+                   th:href="@{/instructor/courses(page=0)}"
+                   class="btn btn-outline">
+                    Về trang đầu
+                </a>
+            </div>
+
+            <!-- Phan trang -->
+            <nav class="pagination"
+                 th:if="${totalPages > 1}"
+                 aria-label="Phân trang khóa học">
+
+                <span>
+                    Trang
+                    <strong th:text="${currentPage + 1}">1</strong>
+                    /
+                    <strong th:text="${totalPages}">1</strong>
+                </span>
+
+                <div class="page-links">
+
+                    <a th:classappend="${currentPage == 0} ? 'disabled' : ''"
+                       th:href="@{/instructor/courses(page=${currentPage > 0 ? currentPage - 1 : 0})}">
+                        ← Trước
+                    </a>
+
+                    <a th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''"
+                       th:href="@{/instructor/courses(page=${currentPage + 1 < totalPages ? currentPage + 1 : currentPage})}">
+                        Sau →
+                    </a>
+
+                </div>
+            </nav>
+
+        </section>
+
+    </th:block>
+
+    <!-- =========================================================
+         CHE DO FORM TAO / SUA KHOA HOC - MF-02 + MF-03
+         ========================================================= -->
+
+    <th:block th:if="${mode == 'form'}">
+
+        <header class="page-header">
+
+            <p class="page-subtitle">GIẢNG VIÊN · QUẢN LÝ KHÓA HỌC</p>
+
+            <h1 class="page-title"
+                th:text="${isEdit} ? 'Chỉnh sửa khóa học' : 'Tạo khóa học mới'">
+                Tạo khóa học mới
+            </h1>
+
+        </header>
+
+        <div class="lesson-toolbar">
+            <a class="btn btn-outline"
+               th:href="@{/instructor/courses}">
+                ← Danh sách khóa học
+            </a>
+        </div>
+
+        <section class="card form-card">
+
+            <form method="post"
+                  enctype="multipart/form-data"
+                  th:object="${courseForm}"
+                  th:action="${isEdit}
+                      ? @{/instructor/courses/{id}/edit(id=${courseId})}
+                      : @{/instructor/courses/new}"
+                  novalidate>
+
+                <!-- Ten khoa hoc -->
+                <div class="form-group"
+                     th:classappend="${#fields.hasErrors('courseName')} ? 'has-error' : ''">
+
+                    <label class="form-label" for="courseName">
+                        Tên khóa học *
+                    </label>
+
+                    <input id="courseName"
+                           type="text"
+                           th:field="*{courseName}"
+                           maxlength="150"
+                           placeholder="Ví dụ: Tiếng Nhật N5 cơ bản">
+
+                    <span class="form-help">
+                        Từ 5 đến 150 ký tự.
+                    </span>
+
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('courseName')}"
+                          th:errors="*{courseName}">
+                        Lỗi
+                    </span>
+                </div>
+
+                <!-- Cap do JLPT -->
+                <div class="form-group"
+                     th:classappend="${#fields.hasErrors('jlptLevel')} ? 'has-error' : ''">
+
+                    <label class="form-label" for="jlptLevel">
+                        Cấp độ JLPT *
+                    </label>
+
                     <select id="jlptLevel" th:field="*{jlptLevel}">
-                        <option value="N5">N5</option>
-                        <option value="N4">N4</option>
-                        <option value="N3">N3</option>
-                        <option value="N2">N2</option>
-                        <option value="N1">N1</option>
+
+                        <option value="">-- Chọn cấp độ --</option>
+
+                        <option th:each="lv : ${levels}"
+                                th:value="${lv.name()}"
+                                th:text="${lv.name()}">
+                            N5
+                        </option>
+
                     </select>
-                    <p class="field-error" th:if="${#fields.hasErrors('jlptLevel')}" th:errors="*{jlptLevel}"></p>
+
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('jlptLevel')}"
+                          th:errors="*{jlptLevel}">
+                        Lỗi
+                    </span>
                 </div>
-                <div class="field">
-                    <label for="courseStatus">Trạng thái *</label>
-                    <select id="courseStatus" th:field="*{courseStatus}">
-                        <option value="ACTIVE">ACTIVE - Đang mở</option>
-                        <option value="INACTIVE">INACTIVE - Ngừng mở</option>
-                    </select>
-                    <p class="field-error" th:if="${#fields.hasErrors('courseStatus')}" th:errors="*{courseStatus}"></p>
+
+                <!-- Mo ta -->
+                <div class="form-group"
+                     th:classappend="${#fields.hasErrors('description')} ? 'has-error' : ''">
+
+                    <label class="form-label" for="description">
+                        Mô tả khóa học *
+                    </label>
+
+                    <textarea id="description"
+                              th:field="*{description}"
+                              rows="6"
+                              maxlength="2000"
+                              placeholder="Giới thiệu nội dung, đối tượng học viên...">
+                    </textarea>
+
+                    <span class="form-help">
+                        Tối đa 2000 ký tự.
+                    </span>
+
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('description')}"
+                          th:errors="*{description}">
+                        Lỗi
+                    </span>
                 </div>
-            </div>
 
-            <div class="field">
-                <label for="coverImage">Ảnh nền khóa học (JPG, PNG, WEBP, GIF · tối đa 5MB)</label>
-                <img id="coverPreview" class="course-cover" alt="Xem trước ảnh nền" style="display:none;">
-                <img id="currentCover" class="course-cover" th:if="${isEdit}"
-                     th:src="@{/files/course-images/{courseId}(courseId=${courseId})}"
-                     alt="Ảnh nền hiện tại" onerror="this.style.display='none'">
-                <input id="coverImage" name="coverImage" type="file"
-                       accept="image/png,image/jpeg,image/webp,image/gif">
-                <p class="muted" th:if="${isEdit}">Để trống nếu muốn giữ ảnh hiện tại.</p>
-            </div>
+                <!-- Anh bia MF-03 -->
+                <div class="form-group">
 
-            <div class="lesson-toolbar">
-                <button type="submit" class="btn btn-primary"
-                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo khóa học'">Lưu</button>
-            </div>
-        </form>
-    </section>
+                    <label class="form-label" for="coverImage">
+                        Ảnh bìa khóa học
+                    </label>
 
-    <script>
-        document.getElementById('coverImage').addEventListener('change', function () {
-            var preview = document.getElementById('coverPreview');
-            var current = document.getElementById('currentCover');
-            var file = this.files && this.files[0];
-            if (!file) {
-                preview.style.display = 'none';
-                if (current) { current.style.display = ''; }
-                return;
-            }
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            if (current) { current.style.display = 'none'; }
-        });
-    </script>
+                    <p class="form-help">
+                        JPG, PNG, WEBP hoặc GIF. Dung lượng tối đa 5MB.
+                    </p>
+
+                    <!-- Anh hien tai -->
+                    <img id="currentCover"
+                         class="course-cover"
+                         th:if="${isEdit}"
+                         th:src="@{/files/course-images/{id}(id=${courseId})}"
+                         alt="Ảnh bìa hiện tại"
+                         onerror="this.style.display='none'">
+
+                    <!-- Anh xem truoc -->
+                    <img id="coverPreview"
+                         class="course-cover"
+                         alt="Xem trước ảnh bìa"
+                         style="display:none;">
+
+                    <input id="coverImage"
+                           type="file"
+                           name="coverImage"
+                           accept="image/png,image/jpeg,image/webp,image/gif">
+
+                    <span class="form-help" th:if="${isEdit}">
+                        Để trống nếu muốn giữ ảnh hiện tại.
+                    </span>
+
+                </div>
+
+                <!-- Nut thao tac -->
+                <div class="form-actions">
+
+                    <button type="submit" class="btn btn-primary"
+                            th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo khóa học'">
+                        Lưu
+                    </button>
+
+                    <a th:href="@{/instructor/courses}"
+                       class="btn btn-outline">
+                        Hủy
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <!-- Preview anh -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('coverImage');
+                const preview = document.getElementById('coverPreview');
+                const current = document.getElementById('currentCover');
+
+                if (!input || !preview) {
+                    return;
+                }
+
+                input.addEventListener('change', function () {
+                    const file = this.files && this.files[0];
+
+                    if (!file) {
+                        preview.style.display = 'none';
+
+                        if (current) {
+                            current.style.display = '';
+                        }
+
+                        return;
+                    }
+
+                    preview.src = URL.createObjectURL(file);
+                    preview.style.display = 'block';
+
+                    if (current) {
+                        current.style.display = 'none';
+                    }
+                });
+            });
+        </script>
+
+    </th:block>
+
 </section>
+
 </body>
 </html>
