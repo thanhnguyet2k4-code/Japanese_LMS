@@ -1,3 +1,4 @@
+
 package com.japaneselms.config;
 
 import com.japaneselms.entity.Course;
@@ -9,12 +10,14 @@ import com.japaneselms.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class AdminInitializer {
 
     @Bean
+    @Order(1)
     public CommandLineRunner createTestUsers(
             UserRepository userRepository,
             CourseRepository courseRepository,
@@ -22,25 +25,68 @@ public class AdminInitializer {
             PasswordEncoder passwordEncoder) {
 
         return args -> {
-            // 1. Quản trị viên (Admin)
-            initUser(userRepository, passwordEncoder, "admin@japaneselms.com", "Admin@12345", "System Administrator", "ADMIN");
-            initUser(userRepository, passwordEncoder, "admin@lms.com", "123456", "Admin Quản Trị Viên", "ADMIN");
+            // 1. Create the first system admin if it does not exist
+            initUserIfAbsent(
+                    userRepository,
+                    passwordEncoder,
+                    "admin@japaneselms.com",
+                    "Admin@12345",
+                    "System Administrator",
+                    "ADMIN"
+            );
 
-            // 2. Giảng viên (Instructor)
-            User instructor = initUser(userRepository, passwordEncoder, "takahashi@lms.com", "123456", "Thầy Takahashi Kenji", "INSTRUCTOR");
+            // 2. Create additional demo admin
+            initUserIfAbsent(
+                    userRepository,
+                    passwordEncoder,
+                    "admin@lms.com",
+                    "123456",
+                    "Admin Quan Tri Vien",
+                    "ADMIN"
+            );
 
-            // 3. Học viên (Student)
-            User studentAn = initUser(userRepository, passwordEncoder, "an.student@lms.com", "123456", "Nguyễn Văn An", "STUDENT");
-            initUser(userRepository, passwordEncoder, "cuong.student@lms.com", "123456", "Lê Hoàng Cường", "STUDENT");
+            // 3. Create demo instructor
+            User instructor = initUserIfAbsent(
+                    userRepository,
+                    passwordEncoder,
+                    "takahashi@lms.com",
+                    "123456",
+                    "Thay Takahashi Kenji",
+                    "INSTRUCTOR"
+            );
 
-            // 4. Đảm bảo có Course 1 do Giảng viên quản lý nếu chưa có
+            // 4. Create demo students
+            User studentAn = initUserIfAbsent(
+                    userRepository,
+                    passwordEncoder,
+                    "an.student@lms.com",
+                    "123456",
+                    "Nguyen Van An",
+                    "STUDENT"
+            );
+
+            initUserIfAbsent(
+                    userRepository,
+                    passwordEncoder,
+                    "cuong.student@lms.com",
+                    "123456",
+                    "Le Hoang Cuong",
+                    "STUDENT"
+            );
+
+            // 5. Create a demo course and enrollment if no course exists
             if (courseRepository.count() == 0 && instructor != null) {
                 Course course = new Course();
-                course.setCourseName("Tiếng Nhật Sơ Cấp N5 - Minna no Nihongo I");
-                course.setDescription("Khóa học tiếng Nhật N5 cơ bản.");
+                course.setCourseName(
+                        "Tieng Nhat So Cap N5 - Minna no Nihongo I"
+                );
+                course.setDescription(
+                        "Khoa hoc tieng Nhat N5 co ban."
+                );
                 course.setJlptLevel("N5");
                 course.setCourseStatus("ACTIVE");
                 course.setInstructor(instructor);
+
                 course = courseRepository.save(course);
 
                 if (studentAn != null) {
@@ -51,19 +97,31 @@ public class AdminInitializer {
                 }
             }
 
-            System.out.println(">>> Đã khởi tạo và đồng bộ tài khoản hệ thống thành công.");
+            System.out.println(
+                    ">>> Demo accounts and learning data initialization completed."
+            );
         };
     }
 
-    private User initUser(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                          String email, String password, String fullName, String role) {
-        User user = userRepository.findByEmailIgnoreCase(email).orElse(new User());
-        user.setEmail(email.trim().toLowerCase());
-        user.setFullName(fullName);
-        user.setPasswordHash(passwordEncoder.encode(password));
-        user.setRole(role);
-        user.setAccountStatus("APPROVED");
-        user.setActive(true);
-        return userRepository.save(user);
+    private User initUserIfAbsent(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            String email,
+            String password,
+            String fullName,
+            String role) {
+
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setEmail(email.trim().toLowerCase());
+                    user.setFullName(fullName);
+                    user.setPasswordHash(passwordEncoder.encode(password));
+                    user.setRole(role);
+                    user.setAccountStatus("APPROVED");
+                    user.setActive(true);
+
+                    return userRepository.save(user);
+                });
     }
 }

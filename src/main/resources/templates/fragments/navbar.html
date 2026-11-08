@@ -104,11 +104,11 @@
             <a th:href="@{/}" class="nav-link">Trang chủ</a>
 
             <a sec:authorize="hasRole('INSTRUCTOR')"
-               th:href="@{/}"
+               th:href="@{/instructor}"
                class="nav-link">Giảng viên</a>
 
             <a sec:authorize="hasRole('STUDENT')"
-               th:href="@{/}"
+               th:href="@{/student}"
                class="nav-link">Học viên</a>
 
             <a sec:authorize="isAuthenticated()"

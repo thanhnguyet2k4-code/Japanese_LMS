@@ -3,6 +3,7 @@ package com.japaneselms.config;
 import com.japaneselms.account.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,41 +16,93 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider();
+
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
+
         return authProvider;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
         http
                 .authenticationProvider(authenticationProvider())
-                // Tắt CSRF để tránh lỗi chặn submit form trên trình duyệt
-                .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public pages and static resources
                         .requestMatchers(
                                 "/",
                                 "/login",
                                 "/register",
+                                "/403",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
                                 "/favicon.ico"
                         ).permitAll()
-                        .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/student", "/student/**").hasAnyRole("STUDENT", "ADMIN")
-                        .requestMatchers("/instructor", "/instructor/**").hasAnyRole("INSTRUCTOR", "ADMIN")
+
+                        // MF-02: Public course listing and detail (GET only)
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/courses",
+                                "/courses/*"
+                        ).permitAll()
+
+                        // MF-02: Only Student can enroll in a course
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/courses/*/enroll"
+                        ).hasRole("STUDENT")
+
+                        // Student course management
+                        .requestMatchers(
+                                "/my-courses",
+                                "/my-courses/**"
+                        ).hasRole("STUDENT")
+
+                        // Admin pages
+                        .requestMatchers(
+                                "/admin",
+                                "/admin/**"
+                        ).hasRole("ADMIN")
+
+                        // Student pages
+                        .requestMatchers(
+                                "/student",
+                                "/student/**"
+                        ).hasRole("STUDENT")
+
+                        // Instructor pages, including Assignment and Grading
+                        .requestMatchers(
+                                "/instructor",
+                                "/instructor/**"
+                        ).hasAnyRole("INSTRUCTOR", "ADMIN")
+
+                        // Learning materials require authentication
+                        .requestMatchers(
+                                "/files/materials/**"
+                        ).authenticated()
+
+                        // All other pages require authentication
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -57,11 +110,11 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .successHandler(roleBasedSuccessHandler())
                         .failureHandler((request, response, exception) -> {
-                            System.err.println(">>> ĐĂNG NHẬP THẤT BẠI: " + exception.getClass().getSimpleName() + " - " + exception.getMessage());
                             response.sendRedirect("/login?error");
                         })
                         .permitAll()
                 )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
@@ -69,14 +122,19 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+
+                .exceptionHandling(exceptions -> exceptions
+                        .accessDeniedPage("/403")
+                );
 
         return http.build();
     }
 
     @Bean
     public AuthenticationSuccessHandler roleBasedSuccessHandler() {
+
         return (request, response, authentication) -> {
+
             boolean isAdmin = authentication.getAuthorities().stream()
                     .anyMatch(authority ->
                             authority.getAuthority().equals("ROLE_ADMIN"));
@@ -91,10 +149,13 @@ public class SecurityConfig {
 
             if (isAdmin) {
                 response.sendRedirect("/admin");
-            } else if (isInstructor) {
-                response.sendRedirect("/instructor/courses/1/assignments");
+
             } else if (isStudent) {
-                response.sendRedirect("/student/courses/1/assignments");
+                response.sendRedirect("/student");
+
+            } else if (isInstructor) {
+                response.sendRedirect("/instructor");
+
             } else {
                 response.sendRedirect("/login?error");
             }

@@ -16,7 +16,22 @@ public class HomeController {
                 || "anonymousUser".equals(authentication.getName())) {
             return "redirect:/login";
         }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        boolean isInstructor = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_INSTRUCTOR".equals(authority.getAuthority()));
+        boolean isStudent = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_STUDENT".equals(authority.getAuthority()));
 
+        if (isAdmin) {
+            return "redirect:/admin";
+        }
+        if (isInstructor) {
+            return "redirect:/instructor";
+        }
+        if (isStudent) {
+            return "redirect:/student";
+        }
         model.addAttribute("email", authentication.getName());
         model.addAttribute("role", authentication.getAuthorities());
 
