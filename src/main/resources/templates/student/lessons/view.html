@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
+<head>
+    <title>Học bài</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">S13 · HỌC BÀI · <span th:text="${course.jlptLevel}">N5</span></p>
+        <h1 class="page-title" th:text="${lesson.lessonTitle}">Tiêu đề bài học</h1>
+        <p th:text="${course.courseName}">Khóa học</p>
+    </header>
+
+    <div class="message success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
+
+    <section class="card progress-card">
+        <div class="progress-meta">
+            <span>Tiến độ khóa học:
+                <strong th:text="${course.completedLessons} + '/' + ${course.totalLessons} + ' bài'">0/0 bài</strong>
+            </span>
+            <strong th:text="${course.progressPercent} + '%'">0%</strong>
+        </div>
+        <div class="progress-track" role="progressbar"
+             th:attr="aria-valuenow=${course.progressPercent}"
+             aria-valuemin="0" aria-valuemax="100">
+            <span class="progress-fill" th:style="'width:' + ${course.progressPercent} + '%'"></span>
+        </div>
+    </section>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline"
+           th:href="@{/student/courses/{courseId}/lessons(courseId=${course.courseId})}">
+            ← Danh sách bài học
+        </a>
+        <a class="btn btn-outline"
+           th:if="${previousLessonId != null}"
+           th:href="@{/student/courses/{courseId}/lessons/{lessonId}(courseId=${course.courseId}, lessonId=${previousLessonId})}">
+            Bài trước
+        </a>
+        <a class="btn btn-primary"
+           th:if="${nextLessonId != null}"
+           th:href="@{/student/courses/{courseId}/lessons/{lessonId}(courseId=${course.courseId}, lessonId=${nextLessonId})}">
+            Bài tiếp theo
+        </a>
+        <form th:if="${!lesson.completed}"
+              th:action="@{/student/courses/{courseId}/lessons/{lessonId}/complete(courseId=${course.courseId}, lessonId=${lesson.lessonId})}"
+              method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn btn-primary">Đánh dấu đã học xong</button>
+        </form>
+        <form th:if="${lesson.completed}"
+              th:action="@{/student/courses/{courseId}/lessons/{lessonId}/uncomplete(courseId=${course.courseId}, lessonId=${lesson.lessonId})}"
+              method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn btn-outline">Bỏ đánh dấu hoàn thành</button>
+        </form>
+    </div>
+
+    <p class="status-pill status-active" th:if="${lesson.completed}">Bài học này đã hoàn thành</p>
+
+    <article class="card">
+        <h2 class="card-title">Nội dung bài học</h2>
+        <p th:if="${lesson.lessonDescription != null and !lesson.lessonDescription.isBlank()}"
+           th:text="${lesson.lessonDescription}">Mô tả</p>
+        <p class="muted" th:if="${lesson.lessonDescription == null or lesson.lessonDescription.isBlank()}">
+            Giảng viên chưa thêm mô tả cho bài học này.
+        </p>
+    </article>
+
+    <article class="card">
+        <h2 class="card-title">Tài liệu được phép truy cập</h2>
+
+        <div class="empty-state-box" th:if="${materials == null or #lists.isEmpty(materials)}">
+            <strong>Chưa có tài liệu</strong>
+            <p>Bài học này chưa có PDF, audio hoặc video.</p>
+        </div>
+
+        <div class="material-stack" th:if="${materials != null and !#lists.isEmpty(materials)}">
+            <section class="material-block" th:each="material : ${materials}">
+                <h3 th:text="${material.materialName}">Tài liệu</h3>
+                <p class="muted" th:text="${material.materialType}">PDF</p>
+
+                <div th:if="${material.materialType == 'PDF'}">
+                    <a class="btn btn-primary"
+                       th:href="@{/files/materials/{id}(id=${material.materialId})}"
+                       target="_blank">
+                        Xem / tải PDF
+                    </a>
+                    <p class="muted" th:text="${material.originalFileName}">file.pdf</p>
+                </div>
+
+                <div th:if="${material.materialType == 'MP3'}">
+                    <audio controls
+                           th:src="@{/files/materials/{id}(id=${material.materialId})}">
+                        Trình duyệt không phát được audio.
+                    </audio>
+                    <p class="muted" th:text="${material.originalFileName}">file.mp3</p>
+                </div>
+
+                <div th:if="${material.materialType == 'YOUTUBE'}">
+                    <div class="video-frame" th:if="${material.youtubeEmbedUrl != null}">
+                        <iframe th:src="${material.youtubeEmbedUrl}"
+                                title="Video YouTube"
+                                allowfullscreen
+                                loading="lazy"></iframe>
+                    </div>
+                    <a th:href="${material.externalUrl}" target="_blank" rel="noopener">
+                        Mở trên YouTube
+                    </a>
+                </div>
+            </section>
+        </div>
+    </article>
+</section>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!--
+    Instructor Dashboard   |   GET /instructor
+    Model: dashboard (InstructorDashboardDto), currentTab
+-->
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/UserLayout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan giảng viên - Japanese LMS</title>
+</head>
+
+<body class="admin-layout-page course-page dashboard-page">
+
+<div class="admin-dashboard" layout:fragment="content">
+    <div class="dashboard-inner">
+
+        <!-- ===== Tiêu đề ===== -->
+        <header>
+            <span class="dashboard-eyebrow">KHU VỰC GIẢNG VIÊN</span>
+            <h1 class="dashboard-title">Xin chào, <span th:text="${dashboard.fullName}">Giảng viên</span>!</h1>
+            <p class="dashboard-intro">Tổng quan các khóa học và học viên của bạn.</p>
+        </header>
+
+        <!-- ===== Thẻ số liệu ===== -->
+        <section class="dashboard-metrics" aria-label="Thống kê giảng dạy">
+
+            <div class="dashboard-surface">
+                <div class="metric-top">
+                    <span class="metric-label">Tổng số khóa học</span>
+                    <span class="metric-icon metric-purple" aria-hidden="true">📚</span>
+                </div>
+                <div class="metric-value" th:text="${dashboard.totalCourses}">0</div>
+                <div class="metric-note">Gồm cả khóa đã ngừng hoạt động</div>
+                <a th:href="@{/instructor/courses}" class="metric-link">Quản lý khóa học →</a>
+            </div>
+
+            <div class="dashboard-surface">
+                <div class="metric-top">
+                    <span class="metric-label">Khóa học đang mở</span>
+                    <span class="metric-icon metric-green" aria-hidden="true">✅</span>
+                </div>
+                <div class="metric-value" th:text="${dashboard.activeCourses}">0</div>
+                <div class="metric-note"
+                     th:text="${dashboard.activeCourses > 0} ? 'Đang nhận học viên' : 'Chưa có khóa đang mở'">Đang nhận
+                    học viên
+                </div>
+            </div>
+
+            <div class="dashboard-surface">
+                <div class="metric-top">
+                    <span class="metric-label">Học viên</span>
+                    <span class="metric-icon metric-amber" aria-hidden="true">👥</span>
+                </div>
+                <div class="metric-value" th:text="${dashboard.totalStudents}">0</div>
+                <div class="metric-note">Đã đăng ký khóa học của bạn</div>
+            </div>
+
+            <div class="dashboard-surface">
+                <div class="metric-top">
+                    <span class="metric-label">Bài nộp chờ chấm</span>
+                    <span class="metric-icon metric-red" aria-hidden="true">✍</span>
+                </div>
+                <div class="metric-value" th:text="${dashboard.pendingSubmissions}">0</div>
+                <div class="metric-note"
+                     th:text="${dashboard.pendingSubmissions > 0} ? 'Chờ đánh giá' : 'Đã hoàn tất'">Đã hoàn tất
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Khóa học gần đây + Đăng ký gần đây ===== -->
+        <section class="dashboard-section">
+            <div class="dashboard-columns">
+
+                <article class="dashboard-surface dashboard-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Khóa học gần đây</h2>
+                        <a th:href="@{/instructor/courses/new}" class="dashboard-btn dashboard-btn-primary">+ Tạo khóa
+                            học</a>
+                    </div>
+
+                    <div class="dashboard-table-wrapper" th:if="${!dashboard.recentCourses.isEmpty()}">
+                        <table class="dashboard-table" aria-label="Khóa học gần đây">
+                            <thead>
+                            <tr>
+                                <th scope="col">Tên khóa học</th>
+                                <th scope="col">Cấp độ</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Học viên</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${dashboard.recentCourses}">
+                                <td class="student-name" th:text="${c.courseName}">Tên khóa học</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${'badge-' + #strings.toLowerCase(c.jlptLevel)}"
+                                          th:text="${c.jlptLevel}">N5</span>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${c.courseStatus == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'"
+                                          th:text="${c.courseStatus == 'ACTIVE'} ? 'Đang mở' : 'Ngừng hoạt động'">Đang mở</span>
+                                </td>
+                                <td th:text="${c.studentCount}">0</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="dash-empty" th:if="${dashboard.recentCourses.isEmpty()}">
+                        <p>Bạn chưa có khóa học nào.</p>
+                        <a th:href="@{/instructor/courses/new}" class="dashboard-btn dashboard-btn-primary">Tạo khóa học
+                            đầu tiên</a>
+                    </div>
+                </article>
+
+                <article class="dashboard-surface dashboard-panel">
+                    <h2 class="dashboard-panel-title">Học viên đăng ký gần đây</h2>
+
+                    <ul class="dash-list" th:if="${!dashboard.recentEnrollments.isEmpty()}">
+                        <li th:each="r : ${dashboard.recentEnrollments}">
+                            <div>
+                                <span class="dash-item-title" th:text="${r.studentName}">Họ tên học viên</span>
+                                <span class="dash-item-sub" th:text="${r.studentEmail}">email@example.com</span>
+                                <span class="dash-item-sub" th:text="${r.courseName}">Tên khóa học</span>
+                            </div>
+                            <span class="dash-item-sub"
+                                  th:text="${#temporals.format(r.enrolledAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</span>
+                        </li>
+                    </ul>
+
+                    <div class="dash-empty" th:if="${dashboard.recentEnrollments.isEmpty()}">
+                        <p>Chưa có học viên nào đăng ký.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===== Lối tắt ===== -->
+        <section class="dashboard-section">
+            <h2 class="dashboard-section-title">Lối tắt</h2>
+            <div class="dashboard-actions">
+                <a th:href="@{/instructor/courses}" class="dashboard-surface dashboard-action">
+                    <span class="action-icon metric-purple" aria-hidden="true">📚</span>
+                    <span>
+                        <span class="action-title">Quản lý khóa học</span>
+                        <span class="action-description">Xem, sửa và ngừng hoạt động khóa học.</span>
+                    </span>
+                </a>
+
+                <a th:href="@{/instructor/courses/new}" class="dashboard-surface dashboard-action">
+                    <span class="action-icon metric-green" aria-hidden="true">➕</span>
+                    <span>
+                        <span class="action-title">Tạo khóa học mới</span>
+                        <span class="action-description">Thêm khóa học N5, N4 hoặc N3.</span>
+                    </span>
+                </a>
+
+                <a th:href="@{/profile}" class="dashboard-surface dashboard-action">
+                    <span class="action-icon metric-amber" aria-hidden="true">👤</span>
+                    <span>
+                        <span class="action-title">Hồ sơ cá nhân</span>
+                        <span class="action-description">Cập nhật thông tin và đổi mật khẩu.</span>
+                    </span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+</body>
+</html>

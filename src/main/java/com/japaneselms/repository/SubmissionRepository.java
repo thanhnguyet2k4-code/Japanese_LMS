@@ -1,4 +1,7 @@
 package com.japaneselms.repository;
 
-public class SubmissionRepository {
+import com.japaneselms.entity.Submission;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 }
