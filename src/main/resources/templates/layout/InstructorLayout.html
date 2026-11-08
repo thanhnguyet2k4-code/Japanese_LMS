@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE">Khu vực giảng viên - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <th:block layout:fragment="head"></th:block>
+</head>
+
+<body class="admin-layout-page">
+
+<div class="admin-layout" id="adminLayout">
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="Menu giảng viên">
+        <div class="sidebar-heading">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-mark" aria-hidden="true">日</span>
+                <div class="sidebar-brand-info">
+                    <h2>Japanese LMS</h2>
+                    <p>KHU VỰC GIẢNG VIÊN</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a th:href="@{/instructor/lesson-courses}"
+               th:classappend="${currentTab == 'courses' or currentTab == null ? 'active' : ''}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">📚</span>
+                <span class="sidebar-item-text">Khóa học của tôi</span>
+            </a>
+            <a th:href="@{/profile}"
+               th:classappend="${currentTab == 'profile' ? 'active' : ''}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">👤</span>
+                <span class="sidebar-item-text">Hồ sơ cá nhân</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <a th:href="@{/}" class="sidebar-portal-link">
+                <span class="portal-link-icon" aria-hidden="true">⌂</span>
+                <span>Về trang chủ</span>
+            </a>
+            <div class="sidebar-version-tag">
+                <span>Japanese LMS v1.0</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="admin-right">
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <button type="button"
+                        class="admin-icon-btn"
+                        id="adminSidebarToggle"
+                        aria-label="Ẩn hoặc hiện thanh điều hướng"
+                        aria-expanded="true">
+                    <span aria-hidden="true">☰</span>
+                </button>
+                <span class="portal-heading">Quản lý bài học và tài liệu</span>
+            </div>
+            <div class="admin-topbar-right">
+                <span class="admin-account-label" sec:authentication="name">Giảng viên</span>
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-outline">Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <div class="admin-content" layout:fragment="content">
+                <p>Nội dung giảng viên sẽ hiển thị tại đây.</p>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleButton = document.getElementById('adminSidebarToggle');
+        const layout = document.getElementById('adminLayout');
+        if (toggleButton && layout) {
+            toggleButton.addEventListener('click', function () {
+                const isCollapsed = layout.classList.toggle('sidebar-collapsed');
+                toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

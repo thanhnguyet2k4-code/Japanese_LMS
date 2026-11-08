@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Quản lý bài học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">S11 · FORM QUẢN LÝ BÀI HỌC</p>
+        <h1 class="page-title" th:text="${isEdit} ? 'Chỉnh sửa bài học' : 'Tạo bài học mới'">Tạo bài học</h1>
+        <p th:text="${course.courseName}">Khóa học</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline"
+           th:href="@{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
+            ← Danh sách bài học
+        </a>
+    </div>
+
+    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <form method="post"
+              th:object="${lessonForm}"
+              th:action="${isEdit}
+                  ? @{/instructor/courses/{courseId}/lessons/{lessonId}/edit(courseId=${course.courseId}, lessonId=${lessonId})}
+                  : @{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="lessonTitle">Tiêu đề bài học *</label>
+                <input id="lessonTitle" type="text" th:field="*{lessonTitle}" maxlength="200" required>
+                <p class="field-error" th:if="${#fields.hasErrors('lessonTitle')}" th:errors="*{lessonTitle}"></p>
+            </div>
+
+            <div class="field">
+                <label for="sectionId">Thuộc phần</label>
+                <select id="sectionId" th:field="*{sectionId}">
+                    <option value="">-- Chưa phân phần --</option>
+                    <option th:each="section : ${sections}"
+                            th:value="${section.sectionId}"
+                            th:text="'Phần ' + ${section.sectionOrder} + ' · ' + ${section.sectionTitle}">Phần</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="lessonDescription">Mô tả bài học</label>
+                <textarea id="lessonDescription" rows="6" th:field="*{lessonDescription}"></textarea>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="lessonOrder">Thứ tự bài học *</label>
+                    <input id="lessonOrder" type="number" min="1" th:field="*{lessonOrder}" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('lessonOrder')}" th:errors="*{lessonOrder}"></p>
+                </div>
+                <div class="field">
+                    <label for="lessonStatus">Trạng thái *</label>
+                    <select id="lessonStatus" th:field="*{lessonStatus}">
+                        <option value="ACTIVE">ACTIVE - Đang dùng</option>
+                        <option value="INACTIVE">INACTIVE - Ngừng dùng</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('lessonStatus')}" th:errors="*{lessonStatus}"></p>
+                </div>
+            </div>
+
+            <div class="lesson-toolbar">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo bài học'">Lưu</button>
+            </div>
+        </form>
+    </section>
+</section>
+</body>
+</html>

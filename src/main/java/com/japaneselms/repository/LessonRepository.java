@@ -1,26 +1,70 @@
+
 package com.japaneselms.repository;
 
 import com.japaneselms.entity.Lesson;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
- * Repository của bảng lessons.
- * File gốc của Leader là class rỗng -> đổi thành interface.
- * (Member 3 cũng sẽ thêm hàm vào file này: khi merge chỉ cần giữ cả hai khối code.)
+ * Repository quan ly du lieu Lesson.
  */
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
-    // ===================== MF-02 (Member 2) – BẮT ĐẦU =====================
+    // ==================== MF-03: LESSON MANAGEMENT ====================
+
+    boolean existsBySection_SectionId(Long sectionId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Lesson l where l.course.courseId = :courseId")
+    void deleteAllByCourseId(@Param("courseId") Long courseId);
+
+    @Query("""
+            select l from Lesson l
+            join fetch l.course c
+            left join fetch l.section
+            where c.courseId = :courseId
+            order by l.lessonOrder asc
+            """)
+    List<Lesson> findByCourseIdOrderByLessonOrderAsc(
+            @Param("courseId") Long courseId);
+
+    @Query("""
+            select l from Lesson l
+            join fetch l.course c
+            left join fetch l.section
+            join fetch c.instructor
+            where l.lessonId = :lessonId
+            """)
+    Optional<Lesson> findWithCourseById(
+            @Param("lessonId") Long lessonId);
+
+    boolean existsByCourse_CourseIdAndLessonOrder(
+            Long courseId, Integer lessonOrder);
+
+    boolean existsByCourse_CourseIdAndLessonOrderAndLessonIdNot(
+            Long courseId,
+            Integer lessonOrder,
+            Long lessonId);
+
+    long countByCourse_CourseIdAndLessonStatusIgnoreCase(
+            Long courseId, String lessonStatus);
+
+
+    // ==================== MF-02: COURSE MANAGEMENT ====================
 
     /**
-     * UC07 – Đếm số bài học (ACTIVE) của khóa học để hiển thị ở S07.
+     * UC07 - Dem so bai hoc theo trang thai cua khoa hoc.
      */
-    long countByCourse_CourseIdAndLessonStatus(Long courseId, String lessonStatus);
+    long countByCourse_CourseIdAndLessonStatus(
+            Long courseId, String lessonStatus);
 
     /**
-     * UC08 – Khóa học đã có bài học (bất kể trạng thái) chưa? (quyết định Soft Delete)
+     * UC08 - Kiem tra khoa hoc da co bai hoc hay chua.
      */
     boolean existsByCourse_CourseId(Long courseId);
-
-    // ====================== MF-02 (Member 2) – KẾT THÚC ======================
 }

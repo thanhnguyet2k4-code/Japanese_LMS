@@ -67,7 +67,7 @@ public class InstructorCourseService {
     // ===================== Luồng 2: tạo khóa học =====================
 
     @Transactional
-    public void createCourse(CourseForm form, Long instructorId) {
+    public Long createCourse(CourseForm form, Long instructorId) {
         // Đọc lại user từ DB: phiên đăng nhập có thể đã cũ (tài khoản bị khóa sau khi login)
         User instructor = userRepository.findById(instructorId)
                 .filter(user -> "INSTRUCTOR".equalsIgnoreCase(user.getRole()) && user.isActive())
@@ -87,7 +87,8 @@ public class InstructorCourseService {
         course.setCourseStatus(CourseStatus.ACTIVE);   // BR3: mặc định ACTIVE
         // createdAt / updatedAt do @PrePersist của Entity tự gán
 
-        courseRepository.save(course);
+        Course savedCourse = courseRepository.save(course);
+        return savedCourse.getCourseId();
     }
 
     // ===================== Luồng 3: xem + sửa khóa học =====================

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Xem trước bài học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">XEM TRƯỚC GIAO DIỆN HỌC BÀI</p>
+        <h1 class="page-title" th:text="${lesson.lessonTitle}">Tiêu đề bài học</h1>
+        <p th:text="${course.courseName}">Khóa học</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline"
+           th:href="@{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
+            ← Danh sách bài học
+        </a>
+        <a class="btn btn-outline"
+           th:href="@{/instructor/lessons/{lessonId}/materials(lessonId=${lesson.lessonId})}">
+            Quản lý tài liệu
+        </a>
+    </div>
+
+    <article class="card">
+        <h2 class="card-title">Nội dung bài học</h2>
+        <p th:if="${lesson.lessonDescription != null and !lesson.lessonDescription.isBlank()}"
+           th:text="${lesson.lessonDescription}">Mô tả</p>
+        <p class="muted" th:if="${lesson.lessonDescription == null or lesson.lessonDescription.isBlank()}">
+            Chưa có mô tả bài học.
+        </p>
+    </article>
+
+    <article class="card">
+        <h2 class="card-title">Tài liệu</h2>
+        <div class="empty-state-box" th:if="${materials == null or #lists.isEmpty(materials)}">
+            <strong>Chưa có tài liệu</strong>
+        </div>
+        <div class="material-stack" th:if="${materials != null and !#lists.isEmpty(materials)}">
+            <section class="material-block" th:each="material : ${materials}">
+                <h3 th:text="${material.materialName}">Tài liệu</h3>
+                <p class="muted" th:text="${material.materialType}">PDF</p>
+                <div th:if="${material.materialType == 'PDF'}">
+                    <a class="btn btn-primary"
+                       th:href="@{/files/materials/{id}(id=${material.materialId})}"
+                       target="_blank">Xem PDF</a>
+                </div>
+                <div th:if="${material.materialType == 'MP3'}">
+                    <audio controls th:src="@{/files/materials/{id}(id=${material.materialId})}"></audio>
+                </div>
+                <div th:if="${material.materialType == 'YOUTUBE' and material.youtubeEmbedUrl != null}">
+                    <div class="video-frame">
+                        <iframe th:src="${material.youtubeEmbedUrl}" title="Video YouTube" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </article>
+</section>
+</body>
+</html>

@@ -1,3 +1,4 @@
+
 package com.japaneselms.repository;
 
 import com.japaneselms.entity.Enrollment;
@@ -5,32 +6,59 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 /**
- * Repository của bảng enrollments.
- * File gốc của Leader là class rỗng -> đổi thành interface (xem ghi chú ở CourseRepository).
+ * Repository quan ly du lieu Enrollment.
  */
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
-    // ===================== MF-02 (Member 2) – BẮT ĐẦU =====================
+    // ==================== MF-03: LESSON MANAGEMENT ====================
 
     /**
-     * UC07/UC09 – Student đã đăng ký khóa học này chưa? (chống đăng ký trùng)
+     * Xoa tat ca dang ky cua mot khoa hoc.
      */
-    boolean existsByStudent_UserIdAndCourse_CourseId(Long studentId, Long courseId);
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Enrollment e where e.course.courseId = :courseId")
+    void deleteAllByCourseId(@Param("courseId") Long courseId);
 
     /**
-     * UC08 – Khóa học đã có học viên đăng ký chưa? (quyết định Soft Delete)
+     * Lay danh sach khoa hoc da dang ky cua Student,
+     * kem Course va Instructor, moi nhat truoc.
+     */
+    @Query("""
+            select e from Enrollment e
+            join fetch e.course c
+            join fetch c.instructor
+            where e.student.userId = :studentId
+            order by e.enrolledAt desc
+            """)
+    List<Enrollment> findWithCourseByStudentId(
+            @Param("studentId") Long studentId);
+
+
+    // ==================== MF-02: COURSE MANAGEMENT ====================
+
+    /**
+     * UC07/UC09 - Kiem tra Student da dang ky khoa hoc chua.
+     */
+    boolean existsByStudent_UserIdAndCourse_CourseId(
+            Long studentId, Long courseId);
+
+    /**
+     * UC08 - Kiem tra khoa hoc da co hoc vien dang ky chua.
      */
     boolean existsByCourse_CourseId(Long courseId);
 
     /**
-     * UC10 – Các đăng ký của một Student, phân trang.
-     *
-     * @EntityGraph nạp luôn course và course.instructor trong 1 câu JOIN -> không bị N+1.
+     * UC10 - Lay danh sach dang ky cua Student co phan trang.
+     * EntityGraph nap Course va Instructor de tranh N+1.
      */
     @EntityGraph(attributePaths = {"course", "course.instructor"})
-    Page<Enrollment> findByStudent_UserId(Long studentId, Pageable pageable);
-
-    // ====================== MF-02 (Member 2) – KẾT THÚC ======================
+    Page<Enrollment> findByStudent_UserId(
+            Long studentId, Pageable pageable);
 }

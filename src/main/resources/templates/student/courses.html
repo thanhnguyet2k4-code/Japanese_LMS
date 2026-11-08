@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
+<head>
+    <title>Khóa học của tôi</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">HỌC VIÊN</p>
+        <h1 class="page-title">Khóa học đã đăng ký</h1>
+        <p>Theo dõi phần trăm hoàn thành và chọn khóa học để tiếp tục học bài.</p>
+    </header>
+
+    <div class="empty-state-box" th:if="${courses == null or #lists.isEmpty(courses)}">
+        <strong>Bạn chưa đăng ký khóa học nào</strong>
+        <p>Hãy đăng ký khóa học để bắt đầu học bài.</p>
+    </div>
+
+    <div class="lesson-card-grid" th:if="${courses != null and !#lists.isEmpty(courses)}">
+        <article class="card lesson-course-card" th:each="course : ${courses}">
+            <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
+            <h2 th:text="${course.courseName}">Tên khóa học</h2>
+            <p class="muted" th:text="${course.instructor != null ? course.instructor.fullName : ''}">Giảng viên</p>
+
+            <div class="progress-block">
+                <div class="progress-meta">
+                    <span th:text="${course.completedLessons} + '/' + ${course.totalLessons} + ' bài'">0/0 bài</span>
+                    <strong th:text="${course.progressPercent} + '%'">0%</strong>
+                </div>
+                <div class="progress-track" role="progressbar"
+                     th:attr="aria-valuenow=${course.progressPercent}"
+                     aria-valuemin="0" aria-valuemax="100">
+                    <span class="progress-fill" th:style="'width:' + ${course.progressPercent} + '%'"></span>
+                </div>
+            </div>
+
+            <a class="btn btn-primary"
+               th:href="@{/student/courses/{courseId}/lessons(courseId=${course.courseId})}">
+                Vào học
+            </a>
+        </article>
+    </div>
+</section>
+</body>
+</html>

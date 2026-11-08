@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
+<head>
+    <title>Danh sách bài học</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">S10 · DANH SÁCH BÀI HỌC</p>
+        <h1 class="page-title" th:text="${course.courseName}">Khóa học</h1>
+        <p>Chỉ hiển thị các bài học đang hoạt động trong khóa học bạn đã đăng ký.</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:href="@{/student/lesson-courses}">← Khóa học của tôi</a>
+    </div>
+
+    <section class="card progress-card">
+        <div class="progress-meta">
+            <span>Tiến độ khóa học:
+                <strong th:text="${course.completedLessons} + '/' + ${course.totalLessons} + ' bài đã hoàn thành'">0/0</strong>
+            </span>
+            <strong th:text="${course.progressPercent} + '%'">0%</strong>
+        </div>
+        <div class="progress-track" role="progressbar"
+             th:attr="aria-valuenow=${course.progressPercent}"
+             aria-valuemin="0" aria-valuemax="100">
+            <span class="progress-fill" th:style="'width:' + ${course.progressPercent} + '%'"></span>
+        </div>
+    </section>
+
+    <div class="empty-state-box" th:if="${groups == null or #lists.isEmpty(groups)}">
+        <strong>Chưa có bài học</strong>
+        <p>Giảng viên chưa mở bài học nào cho khóa này.</p>
+    </div>
+
+    <details class="section-block card" open th:each="group : ${groups}">
+        <summary class="section-header">
+            <div>
+                <strong class="section-title" th:text="${group.title}">Tên phần</strong>
+                <p class="muted" th:if="${group.sectionId != null}"
+                   th:text="'Phần ' + ${group.sectionOrder}">Phần 0</p>
+            </div>
+            <span class="muted" th:text="${group.lessonCount} + ' bài'">3 bài</span>
+        </summary>
+
+        <a class="section-lesson-row section-lesson-link"
+           th:each="lesson : ${group.lessons}"
+           th:href="@{/student/courses/{courseId}/lessons/{lessonId}(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">
+            <div class="section-lesson-info">
+                <strong th:text="${lesson.lessonTitle}">Tiêu đề</strong>
+                <p class="muted">
+                    <span th:text="'Bài ' + ${lesson.lessonOrder}">Bài 1</span> ·
+                    <span th:text="${lesson.materialCount} + ' tài liệu'">0 tài liệu</span>
+                </p>
+            </div>
+            <span class="status-pill status-active" th:if="${lesson.completed}">Đã học</span>
+            <span th:if="${!lesson.completed}">Học bài →</span>
+        </a>
+    </details>
+</section>
+</body>
+</html>

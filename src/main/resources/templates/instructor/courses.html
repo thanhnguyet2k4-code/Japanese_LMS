@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Khóa học của tôi</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">GIẢNG VIÊN</p>
+        <h1 class="page-title">Khóa học của tôi</h1>
+        <p>Chọn khóa học để quản lý bài học và tài liệu học tập.</p>
+    </header>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-primary" th:href="@{/instructor/courses/new}">+ Thêm khóa học</a>
+    </div>
+
+    <div class="message success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
+    <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <div class="empty-state-box" th:if="${courses == null or #lists.isEmpty(courses)}">
+        <strong>Chưa có khóa học</strong>
+        <p>Bấm "Thêm khóa học" để tạo khóa học đầu tiên.</p>
+    </div>
+
+    <div class="lesson-card-grid" th:if="${courses != null and !#lists.isEmpty(courses)}">
+        <article class="card lesson-course-card" th:each="course : ${courses}">
+            <img class="course-cover"
+                 th:if="${course.coverImagePath != null}"
+                 th:src="@{/files/course-images/{courseId}(courseId=${course.courseId}, v=${#temporals.format(course.updatedAt, 'yyyyMMddHHmmss')})}"
+                 th:alt="${course.courseName}"
+                 alt="Ảnh nền khóa học">
+            <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
+            <h2 th:text="${course.courseName}">Tên khóa học</h2>
+            <p class="muted" th:text="${course.courseStatus}">ACTIVE</p>
+            <div class="lesson-toolbar">
+                <a class="btn btn-primary"
+                   th:href="@{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
+                    Quản lý bài học
+                </a>
+                <a class="btn btn-outline"
+                   th:href="@{/instructor/courses/{courseId}/edit(courseId=${course.courseId})}">
+                    Sửa khóa học
+                </a>
+                <form th:action="@{/instructor/courses/{courseId}/delete(courseId=${course.courseId})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Xóa vĩnh viễn khóa học này cùng toàn bộ bài học, tài liệu, tiến độ và danh sách học viên? Hành động không thể hoàn tác.');">
+                        Xóa khóa học
+                    </button>
+                </form>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>
