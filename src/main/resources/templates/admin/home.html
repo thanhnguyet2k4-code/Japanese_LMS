@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+<head>
+    <title>Tổng quan hệ thống - Admin</title>
+</head>
+<body>
+<div layout:fragment="content" class="admin-dashboard">
+    <div class="dashboard-inner">
+
+        <!-- Tiêu đề trang -->
+        <div class="dashboard-header-section">
+            <span class="sub-header-title">KHU VỰC QUẢN TRỊ</span>
+            <h1 class="page-main-title">Tổng quan hệ thống</h1>
+            <p class="welcome-text">
+                Xin chào, <b th:text="${#authentication.name}">admin@japaneselms.com</b>. Theo dõi hoạt động và điều hành hệ thống Japanese LMS tại đây.
+            </p>
+        </div>
+
+        <!-- Toast thông báo (Chỉ hiển thị khi thực sự có thông báo) -->
+        <div id="dashboardToast"
+             th:if="${successMessage != null or errorMessage != null}"
+             class="toast-notification"
+             th:classappend="${successMessage != null ? 'show toast-success' : 'show toast-error'}"
+             role="alert">
+            <span th:text="${successMessage != null ? successMessage : errorMessage}">Thông báo</span>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()" aria-label="Đóng thông báo">×</button>
+        </div>
+
+        <!-- 1. 4 Thẻ Thống Kê (Navigation updated) -->
+        <div class="dashboard-metrics">
+            <!-- Tổng người dùng -> /admin/accounts -->
+            <a th:href="@{/admin/accounts}" class="stat-card" title="Xem danh sách tài khoản người dùng">
+                <div class="stat-header">
+                    <span class="stat-title">Tổng người dùng</span>
+                    <span class="stat-icon" aria-hidden="true">👥</span>
+                </div>
+                <div class="stat-value" th:text="${totalUsersCount != null ? totalUsersCount : (totalUsers != null ? totalUsers : 0)}">0</div>
+                <div class="stat-footer">
+                    <span>Đang hoạt động</span>
+                    <span class="stat-link-arrow">Tất cả tài khoản →</span>
+                </div>
+            </a>
+
+            <!-- Yêu cầu chờ duyệt -> /admin/registrations -->
+            <a th:href="@{/admin/registrations}" class="stat-card" title="Xem danh sách đơn đăng ký chờ duyệt">
+                <div class="stat-header">
+                    <span class="stat-title">Yêu cầu chờ duyệt</span>
+                    <span class="stat-icon" aria-hidden="true">📝</span>
+                </div>
+                <div class="stat-value" th:text="${pendingRegistrationsCount != null ? pendingRegistrationsCount : 0}">0</div>
+                <div class="stat-footer">
+                    <span>Cần xử lý</span>
+                    <span class="stat-link-arrow">Tài khoản học viên mới →</span>
+                </div>
+            </a>
+
+            <!-- Khóa học hoạt động (Tạm giữ đường dẫn /admin/home để trao đổi với Thành viên 2) -->
+            <a th:href="@{/admin/home}" class="stat-card" title="Số lượng khóa học đang mở">
+                <div class="stat-header">
+                    <span class="stat-title">Khóa học hoạt động</span>
+                    <span class="stat-icon" aria-hidden="true">📚</span>
+                </div>
+                <div class="stat-value" th:text="${activeCoursesCount != null ? activeCoursesCount : 0}">0</div>
+                <div class="stat-footer">
+                    <span>Đang hoạt động</span>
+                    <span class="stat-link-arrow">Tổng số khóa học đang mở →</span>
+                </div>
+            </a>
+
+            <!-- Bài nộp chờ chấm (Tạm giữ đường dẫn /admin/home để trao đổi với Thành viên 5) -->
+            <a th:href="@{/admin/home}" class="stat-card" title="Số bài nộp chờ giảng viên chấm điểm">
+                <div class="stat-header">
+                    <span class="stat-title">Bài nộp chờ chấm</span>
+                    <span class="stat-icon" aria-hidden="true">✍️</span>
+                </div>
+                <div class="stat-value" th:text="${pendingGradingCount != null ? pendingGradingCount : 0}">0</div>
+                <div class="stat-footer">
+                    <span>Cần chấm điểm</span>
+                    <span class="stat-link-arrow">Bài tập học viên đã nộp →</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- 2. Tác vụ quản trị trọng tâm (3 Quick Actions) -->
+        <div class="dashboard-section-title">
+            <h2>Tác vụ quản trị trọng tâm</h2>
+            <p>Các thao tác điều hành được sử dụng thường xuyên</p>
+        </div>
+
+        <div class="dashboard-actions-grid">
+            <!-- Khối 1: Duyệt đăng ký -> /admin/registrations -->
+            <a th:href="@{/admin/registrations}" class="action-tile">
+                <div class="action-tile-icon" aria-hidden="true">✓</div>
+                <div class="action-tile-content">
+                    <h3 class="action-tile-title">Duyệt đăng ký</h3>
+                    <p class="action-tile-desc">Kiểm tra và phê duyệt hoặc từ chối các yêu cầu mở tài khoản học viên mới.</p>
+                    <span class="action-tile-btn">Xem danh sách đơn</span>
+                </div>
+            </a>
+
+            <!-- Khối 2: Quản lý tài khoản -> /admin/accounts -->
+            <a th:href="@{/admin/accounts}" class="action-tile">
+                <div class="action-tile-icon" aria-hidden="true">👥</div>
+                <div class="action-tile-content">
+                    <h3 class="action-tile-title">Quản lý tài khoản</h3>
+                    <p class="action-tile-desc">Tìm kiếm, phân quyền giảng viên/học viên, chỉnh sửa hoặc khóa tài khoản vi phạm.</p>
+                    <span class="action-tile-btn">Tài khoản hệ thống</span>
+                </div>
+            </a>
+
+            <!-- Khối 3: Hồ sơ cá nhân -> /profile -->
+            <a th:href="@{/profile}" class="action-tile">
+                <div class="action-tile-icon" aria-hidden="true">⚙️</div>
+                <div class="action-tile-content">
+                    <h3 class="action-tile-title">Hồ sơ cá nhân</h3>
+                    <p class="action-tile-desc">Cập nhật thông tin quản trị viên, email liên hệ và đổi mật khẩu bảo mật tài khoản.</p>
+                    <span class="action-tile-btn">Cập nhật & Cài đặt</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- 3. Dữ liệu và phân tích (Data & Analytics) -->
+        <div class="dashboard-section-title">
+            <h2>Dữ liệu và phân tích</h2>
+            <p>Theo dõi trạng thái học viên và phân bổ khóa học</p>
+        </div>
+
+        <div class="dashboard-columns">
+            <!-- Bảng đăng ký mới nhất chờ duyệt -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <h3 class="panel-title">Đăng ký mới nhất chờ duyệt</h3>
+                        <p class="panel-desc">Danh sách học viên đăng ký cần xét duyệt tài khoản</p>
+                    </div>
+                    <a th:href="@{/admin/registrations}" class="panel-link">Xem tất cả →</a>
+                </div>
+
+                <div class="dashboard-table-wrapper">
+                    <table class="dashboard-table" aria-label="Bảng danh sách học viên chờ duyệt">
+                        <thead>
+                        <tr>
+                            <th scope="col">Họ tên</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Ngày đăng ký</th>
+                            <th scope="col" class="th-actions">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Dữ liệu học viên chờ duyệt -->
+                        <tr th:each="student : ${pendingStudents}">
+                            <td>
+                                <div class="student-cell">
+                                    <div class="student-avatar" aria-hidden="true"
+                                         th:text="${student.fullName != null and !student.fullName.isEmpty() ? student.fullName.substring(0, 1) : 'U'}">
+                                        N
+                                    </div>
+                                    <div class="student-info">
+                                        <strong class="student-name" th:text="${student.fullName}">Họ tên</strong>
+                                        <span class="student-role">Học viên</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="student-email" th:text="${student.email}">student@example.com</span>
+                            </td>
+                            <td>
+                                <span class="student-date"
+                                      th:if="${student.createdAt != null}"
+                                      th:text="${#temporals.format(student.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                    25/10/2026 14:30
+                                </span>
+                                <span class="student-date" th:if="${student.createdAt == null}">—</span>
+                            </td>
+                            <td class="td-actions">
+                                <div class="row-actions">
+                                    <form th:action="@{/admin/registrations/{id}/approve(id=${student.userId})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="dashboard-btn dashboard-btn-primary" title="Phê duyệt tài khoản này">
+                                            Duyệt
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/admin/registrations/{id}/reject(id=${student.userId})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="dashboard-btn dashboard-btn-outline" title="Từ chối yêu cầu này">
+                                            Từ chối
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Trạng thái trống khi không có yêu cầu nào -->
+                        <tr th:if="${pendingStudents == null or #lists.isEmpty(pendingStudents)}">
+                            <td colspan="4" class="dashboard-empty">
+                                <div class="empty-state-box">
+                                    <div class="empty-icon-circle" aria-hidden="true">✓</div>
+                                    <strong class="empty-state-title">Không có yêu cầu đăng ký nào chờ duyệt</strong>
+                                    <p class="empty-state-sub">Tất cả học viên đã được phê duyệt hoặc chưa có yêu cầu mới.</p>
+                                    <a th:href="@{/admin/registrations}" class="empty-link-history">
+                                        Xem lịch sử yêu cầu đã xử lý →
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Khối Phân bổ khóa học JLPT -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <div>
+                        <h3 class="panel-title">Phân bổ khóa học JLPT</h3>
+                        <p class="panel-desc">Tỷ lệ các khóa học theo từng trình độ</p>
+                    </div>
+                    <span class="panel-stat-pill"
+                          th:text="${(activeCoursesCount != null ? activeCoursesCount : 0) + ' khóa'}">
+                        0 khóa
+                    </span>
+                </div>
+
+                <!-- Trạng thái rỗng khi chưa có khóa học -->
+                <div th:if="${activeCoursesCount == null or activeCoursesCount == 0}"
+                     class="jlpt-empty-state">
+                    <div class="jlpt-empty-icon" aria-hidden="true">📚</div>
+                    <h4 class="jlpt-empty-title">Chưa có dữ liệu khóa học JLPT</h4>
+                    <p class="jlpt-empty-desc">Hệ thống hiện chưa có khóa học nào đang hoạt động.</p>
+                </div>
+
+                <!-- Phân bổ khóa học khi có dữ liệu -->
+                <div th:if="${activeCoursesCount != null and activeCoursesCount > 0}"
+                     class="jlpt-levels-wrap">
+                    <!-- Trình độ N5 -->
+                    <div class="level-row">
+                        <div class="level-heading">
+                            <span class="level-badge badge-n5">JLPT N5 (Cơ bản)</span>
+                            <span><strong th:text="${n5CourseCount != null ? n5CourseCount : 0}">0</strong> khóa (<span th:text="${n5Percentage != null ? n5Percentage : 0}">0</span>%)</span>
+                        </div>
+                        <div class="level-track">
+                            <div class="level-fill fill-n5" th:style="'width: ' + (${n5Percentage != null ? n5Percentage : 0}) + '%;'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Trình độ N4 -->
+                    <div class="level-row">
+                        <div class="level-heading">
+                            <span class="level-badge badge-n4">JLPT N4 (Sơ cấp)</span>
+                            <span><strong th:text="${n4CourseCount != null ? n4CourseCount : 0}">0</strong> khóa (<span th:text="${n4Percentage != null ? n4Percentage : 0}">0</span>%)</span>
+                        </div>
+                        <div class="level-track">
+                            <div class="level-fill fill-n4" th:style="'width: ' + (${n4Percentage != null ? n4Percentage : 0}) + '%;'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Trình độ N3 -->
+                    <div class="level-row">
+                        <div class="level-heading">
+                            <span class="level-badge badge-n3">JLPT N3 (Trung cấp)</span>
+                            <span><strong th:text="${n3CourseCount != null ? n3CourseCount : 0}">0</strong> khóa (<span th:text="${n3Percentage != null ? n3Percentage : 0}">0</span>%)</span>
+                        </div>
+                        <div class="level-track">
+                            <div class="level-fill fill-n3" th:style="'width: ' + (${n3Percentage != null ? n3Percentage : 0}) + '%;'"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

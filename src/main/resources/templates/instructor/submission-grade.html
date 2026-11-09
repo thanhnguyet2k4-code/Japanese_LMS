@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${'Chấm điểm: ' + submission.studentName + ' — S20 Japanese LMS'}">S20 — Chấm điểm bài làm</title>
+    
+    <!-- CSS dùng chung của hệ thống & Bootstrap 5 -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    
+    <style>
+        :root {
+            --ink: #172b40;
+            --muted: #657789;
+            --line: #e2e9ee;
+            --accent: #087f77;
+            --accent-hover: #066c66;
+            --bg-page: #f4f8f9;
+        }
+        body {
+            font-family: "DM Sans", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background-color: var(--bg-page);
+        }
+        .card-custom {
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 24px rgba(23,43,64,0.05);
+            background-color: #ffffff;
+        }
+        .btn-teal {
+            background-color: var(--accent);
+            color: white;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 22px;
+            border: none;
+            transition: all .2s;
+        }
+        .btn-teal:hover {
+            background-color: var(--accent-hover);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(8, 127, 119, 0.25);
+        }
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #087f77, #0e9f94);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(8, 127, 119, 0.2);
+        }
+        .quick-score-btn {
+            border: 1px solid #d0dee5;
+            background: #ffffff;
+            color: #172b40;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .quick-score-btn:hover {
+            border-color: #087f77;
+            background: #edf7f5;
+            color: #087f77;
+        }
+        .quick-feedback-tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #475569;
+            cursor: pointer;
+            margin-bottom: 6px;
+            margin-right: 6px;
+            border: 1px solid #e2e8f0;
+            transition: all .15s;
+        }
+        .quick-feedback-tag:hover {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.25rem rgba(8, 127, 119, 0.15);
+        }
+        .nav-switch-card {
+            border-radius: 14px;
+            background: white;
+            border: 1px solid var(--line);
+            padding: 10px 16px;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navbar chuẩn hệ thống -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="container-fluid px-md-5 py-4 flex-grow-1" style="max-width: 1200px;">
+        
+        <!-- Breadcrumb & Top Bar -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/instructor/courses/1/assignments}" class="text-decoration-none text-muted">Danh sách bài tập</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/instructor/assignments/{id}/submissions(id=${submission.assignmentId})}" 
+                       class="text-decoration-none text-muted">Danh sách bài nộp (S18)</a>
+                </li>
+                <li class="breadcrumb-item active fw-bold text-teal" aria-current="page">Chấm điểm bài làm (S20)</li>
+            </ol>
+        </nav>
+
+        <!-- Thanh chuyển nhanh giữa các học viên (Pagination switcher) -->
+        <div class="nav-switch-card mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <a th:if="${prevId != null}" th:href="@{/instructor/submissions/{id}/grade(id=${prevId})}" 
+                   class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold"
+                   th:title="${'Chuyển về bài nộp của ' + prevStudentName}">
+                    <i data-lucide="chevron-left" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                    Bài trước (<span th:text="${prevStudentName}"></span>)
+                </a>
+                <span th:unless="${prevId != null}" class="badge bg-light text-muted border px-3 py-2 rounded-pill">
+                    <i data-lucide="minus" style="width: 14px; height: 14px; vertical-align: middle;"></i> Đầu danh sách
+                </span>
+            </div>
+
+            <!-- Selector danh sách học viên -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted fw-bold d-none d-md-inline">Học viên:</span>
+                <select class="form-select form-select-sm fw-bold border-teal" style="min-width: 260px;" 
+                        onchange="if(this.value) window.location.href='/instructor/submissions/' + this.value + '/grade'">
+                    <option th:each="s, iter : ${allSubmissions}" 
+                            th:value="${s.submissionId}" 
+                            th:text="${(iter.count) + '. ' + s.student.fullName + (s.grade != null ? ' — [' + s.grade + '/10 điểm]' : ' — [Chờ chấm]')}"
+                            th:selected="${s.submissionId == submission.submissionId}">
+                    </option>
+                </select>
+                <span class="badge bg-secondary-subtle text-secondary border px-3 py-2 rounded-pill small">
+                    <strong th:text="${currentIndex + 1}">1</strong> / <span th:text="${totalSubmissions}">1</span>
+                </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <a th:if="${nextId != null}" th:href="@{/instructor/submissions/{id}/grade(id=${nextId})}" 
+                   class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold"
+                   th:title="${'Chuyển sang bài nộp của ' + nextStudentName}">
+                    Bài tiếp theo (<span th:text="${nextStudentName}"></span>)
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                </a>
+                <span th:unless="${nextId != null}" class="badge bg-light text-muted border px-3 py-2 rounded-pill">
+                    Cuối danh sách <i data-lucide="check" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="check-circle" class="text-success"></i>
+                <span th:text="${successMessage}">Thành công</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="alert-circle" class="text-danger"></i>
+                <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- CỘT TRÁI: THÔNG TIN BÀI LÀM CỦA HỌC VIÊN (7 CỘT) -->
+            <div class="col-lg-7">
+                <div class="card card-custom p-4 mb-4">
+                    <!-- Header học viên -->
+                    <div class="d-flex align-items-center justify-content-between gap-3 pb-3 border-bottom mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-circle" th:text="${#strings.substring(submission.studentName, 0, 1)}">A</div>
+                            <div>
+                                <h1 class="h5 fw-bold mb-0 text-dark" th:text="${submission.studentName}">Trần Thị Bình</h1>
+                                <div class="text-muted small" th:text="${submission.studentEmail}">binh.student@lms.com</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span th:if="${submission.graded}" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+                                <i data-lucide="check" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                Đã chấm (<span th:text="${submission.grade + ' / 10'}">9.0/10</span>)
+                            </span>
+                            <span th:unless="${submission.graded}" class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill fw-bold">
+                                <i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: middle;"></i> Chờ chấm điểm
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin đề bài & Thời gian nộp -->
+                    <div class="bg-light rounded-3 p-3 mb-4 border small">
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <span class="text-muted">Bài tập:</span>
+                                <strong class="d-block text-dark" th:text="${submission.assignmentTitle}">Luyện viết 20 chữ Kanji</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted">Thời gian học viên nộp bài:</span>
+                                <strong class="d-block text-dark" th:text="${#temporals.format(submission.submittedAt, 'HH:mm:ss - dd/MM/yyyy')}">22:02:00 - 31/10/2026</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1. Nội dung bài làm dạng Text -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold mb-0 text-dark">
+                                <i data-lucide="file-text" style="width: 16px; height: 16px; color: var(--accent); vertical-align: middle;"></i>
+                                Nội dung câu trả lời (Bài làm văn bản):
+                            </label>
+                            <button th:if="${submission.responseText != null && !submission.responseText.isBlank()}"
+                                    type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-muted"
+                                    onclick="navigator.clipboard.writeText(document.getElementById('textResponseBox').innerText); alert('Đã sao chép nội dung bài làm!');">
+                                <i data-lucide="copy" style="width: 14px; height: 14px; vertical-align: middle;"></i> Sao chép text
+                            </button>
+                        </div>
+
+                        <div th:if="${submission.responseText != null && !submission.responseText.isBlank()}" 
+                             id="textResponseBox"
+                             class="p-3 bg-white rounded-3 border" 
+                             style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7; min-height: 180px; max-height: 420px; overflow-y: auto;" 
+                             th:text="${submission.responseText}">
+                            Nội dung bài làm của học sinh
+                        </div>
+                        <div th:unless="${submission.responseText != null && !submission.responseText.isBlank()}" class="p-3 bg-light rounded-3 border text-muted small fst-italic">
+                            Học viên không gửi câu trả lời dạng văn bản.
+                        </div>
+                    </div>
+
+                    <!-- 2. Tệp đính kèm bài làm nếu có -->
+                    <div>
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i data-lucide="paperclip" style="width: 16px; height: 16px; color: var(--accent); vertical-align: middle;"></i>
+                            Tệp bài làm đính kèm:
+                        </label>
+
+                        <div th:if="${submission.hasFile}" class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="p-2 bg-white rounded-3 border text-primary">
+                                    <i data-lucide="file" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block text-dark text-break" th:text="${submission.originalFileName}">bai_lam.docx</strong>
+                                    <span class="badge bg-secondary-subtle text-secondary small" th:text="${submission.fileType != null ? submission.fileType : 'FILE'}">DOCX</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/instructor/submissions/{id}/download(id=${submission.submissionId})}" 
+                               class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold">
+                                <i data-lucide="download" style="width: 16px; height: 16px; vertical-align: middle;"></i> Tải xuống
+                            </a>
+                        </div>
+
+                        <div th:unless="${submission.hasFile}" class="p-3 bg-light rounded-3 border text-muted small fst-italic">
+                            Học viên không đính kèm tệp nào.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN CHẤM ĐIỂM & NHẬN XÉT (5 CỘT) -->
+            <div class="col-lg-5">
+                <div class="card card-custom p-4 sticky-top" style="top: 90px;">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <i data-lucide="check-square" style="width: 22px; height: 22px; color: var(--accent);"></i>
+                        <h2 class="h5 fw-bold mb-0 text-dark">Bảng chấm điểm &amp; Đánh giá</h2>
+                    </div>
+
+                    <form th:action="@{/instructor/submissions/{id}/grade(id=${submission.submissionId})}" method="post" id="gradeForm">
+                        <input type="hidden" name="nextId" th:value="${nextId}">
+
+                        <!-- 1. Ô nhập điểm -->
+                        <div class="mb-4">
+                            <label for="gradeInput" class="form-label fw-bold text-dark d-flex justify-content-between">
+                                <span>Điểm số (Thang điểm 10) <span class="text-danger">*</span></span>
+                                <span class="text-muted small fw-normal">Từ 0.0 đến 10.0</span>
+                            </label>
+                            
+                            <div class="input-group input-group-lg mb-2">
+                                <input type="number" 
+                                       step="0.1" 
+                                       min="0.0" 
+                                       max="10.0" 
+                                       id="gradeInput" 
+                                       name="grade" 
+                                       th:value="${submission.grade}"
+                                       class="form-control fw-bold text-center text-success fs-4" 
+                                       placeholder="9.0" 
+                                       required>
+                                <span class="input-group-text fw-bold bg-light text-muted">/ 10</span>
+                            </div>
+
+                            <!-- Nút chọn điểm nhanh (Quick score pills) -->
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                <span class="small text-muted align-self-center me-1">Chọn nhanh:</span>
+                                <button type="button" class="quick-score-btn" onclick="setScore(5.0)">5.0</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(6.0)">6.0</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(7.0)">7.0</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(8.0)">8.0</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(8.5)">8.5</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(9.0)">9.0</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(9.5)">9.5</button>
+                                <button type="button" class="quick-score-btn" onclick="setScore(10.0)">10.0</button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Ô nhập nhận xét & lời phê -->
+                        <div class="mb-4">
+                            <label for="feedbackInput" class="form-label fw-bold text-dark">
+                                Lời phê / Nhận xét của Giảng viên:
+                            </label>
+                            
+                            <!-- Gợi ý nhận xét mẫu -->
+                            <div class="mb-2">
+                                <span class="quick-feedback-tag" onclick="appendFeedback('Bài làm rất tốt, chữ viết rõ ràng và đúng ngữ pháp!')">👍 Rất tốt, đúng ngữ pháp</span>
+                                <span class="quick-feedback-tag" onclick="appendFeedback('Cần chú ý nét viết chữ Kanji và thứ tự các nét.')">✍️ Chú ý nét Kanji</span>
+                                <span class="quick-feedback-tag" onclick="appendFeedback('Nộp bài đúng hạn, tinh thần học tập rất tốt, phát huy nhé!')">⭐ Đúng hạn, phát huy</span>
+                                <span class="quick-feedback-tag" onclick="appendFeedback('Có một số câu ngữ pháp chưa chính xác, hãy xem lại ví dụ trong sách.')">⚠️ Cần xem lại ví dụ</span>
+                            </div>
+
+                            <textarea id="feedbackInput" 
+                                      name="feedback" 
+                                      rows="5" 
+                                      class="form-control" 
+                                      placeholder="Nhập lời nhận xét, góp ý chi tiết cho học viên..."
+                                      th:text="${submission.feedback}"></textarea>
+                        </div>
+
+                        <!-- 3. Nút bấm thao tác -->
+                        <div class="d-grid gap-2 pt-2 border-top">
+                            <!-- Nút Lưu & Chấm bài tiếp theo nếu còn bài -->
+                            <button th:if="${nextId != null}" type="submit" name="action" value="saveAndNext" class="btn btn-teal py-3 fs-6">
+                                <i data-lucide="arrow-right-circle" style="width: 18px; height: 18px; vertical-align: middle;"></i>
+                                Lưu &amp; Chấm bài tiếp theo &rarr;
+                            </button>
+
+                            <!-- Nút Lưu điểm thông thường -->
+                            <button type="submit" name="action" value="save" class="btn btn-outline-dark py-2 rounded-3 fw-bold">
+                                <i data-lucide="check" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                Lưu điểm &amp; Về danh sách bài nộp
+                            </button>
+
+                            <a th:href="@{/instructor/assignments/{id}/submissions(id=${submission.assignmentId})}" 
+                               class="btn btn-link text-decoration-none text-muted small mt-1">
+                                &larr; Quay lại danh sách bài nộp
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer chuẩn hệ thống -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        function setScore(score) {
+            const input = document.getElementById('gradeInput');
+            input.value = score.toFixed(1);
+            input.focus();
+        }
+
+        function appendFeedback(text) {
+            const textarea = document.getElementById('feedbackInput');
+            if (textarea.value.trim().length === 0) {
+                textarea.value = text;
+            } else {
+                textarea.value = textarea.value.trim() + " " + text;
+            }
+            textarea.focus();
+        }
+    </script>
+</body>
+</html>

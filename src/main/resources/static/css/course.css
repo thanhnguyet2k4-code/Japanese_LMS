@@ -1,0 +1,343 @@
+/* ==========================================================================
+   COURSE MODULE (MF-02 – Member 2) – S06, S07, S08, S09
+   File RIÊNG, nạp SAU style.css. Mọi rule đều nằm trong phạm vi .admin-layout-page .course-page
+   nên không ảnh hưởng trang của thành viên khác và không gây xung đột khi merge.
+   Tái sử dụng biến màu (--primary, --accent, ...) và class sẵn có của Leader:
+   .container .page-header .page-title .page-subtitle .card .btn* .form-group
+   .form-label .form-help .alert* .table-wrapper
+   ========================================================================== */
+
+/* ---------- Thanh tìm kiếm / bộ lọc ---------- */
+body.course-page .course-toolbar , .admin-layout-page .course-page .course-toolbar {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 14px;
+    align-items: end;
+    margin-bottom: 22px;
+}
+
+body.course-page .course-toolbar .form-group , .admin-layout-page .course-page .course-toolbar .form-group {
+    margin-bottom: 0;
+}
+
+body.course-page .toolbar-actions , .admin-layout-page .course-page .toolbar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+body.course-page .result-summary , .admin-layout-page .course-page .result-summary {
+    margin: 0 0 16px;
+    color: var(--muted);
+}
+
+/* ---------- Lưới thẻ khóa học (S06, S08) ---------- */
+body.course-page .course-grid , .admin-layout-page .course-page .course-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+body.course-page .course-card , .admin-layout-page .course-page .course-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+body.course-page .course-card:hover , .admin-layout-page .course-page .course-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+}
+
+body.course-page .course-card.is-inactive , .admin-layout-page .course-page .course-card.is-inactive {
+    opacity: 0.8;
+    background: #f8fafc;
+}
+
+body.course-page .course-card-head , .admin-layout-page .course-page .course-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+body.course-page .course-card-title , .admin-layout-page .course-page .course-card-title {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+body.course-page .course-card-title a , .admin-layout-page .course-page .course-card-title a {
+    color: var(--primary);
+}
+
+body.course-page .course-meta , .admin-layout-page .course-page .course-meta {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+body.course-page .course-desc , .admin-layout-page .course-page .course-desc {
+    flex: 1;
+    margin: 0;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+body.course-page .course-card-actions , .admin-layout-page .course-page .course-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* ---------- Nhãn (badge) ---------- */
+body.course-page .badge , .admin-layout-page .course-page .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.course-page .badge-n5 , .admin-layout-page .course-page .badge-n5 {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+body.course-page .badge-n4 , .admin-layout-page .course-page .badge-n4 {
+    color: #9d174d;
+    background: var(--accent-light);
+}
+
+body.course-page .badge-n3 , .admin-layout-page .course-page .badge-n3 {
+    color: #0f766e;
+    background: #ccfbf1;
+}
+
+body.course-page .badge-active , .admin-layout-page .course-page .badge-active {
+    color: #166534;
+    background: #dcfce7;
+}
+
+body.course-page .badge-inactive , .admin-layout-page .course-page .badge-inactive {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+/* ---------- Nút nhỏ ---------- */
+body.course-page .btn-sm , .admin-layout-page .course-page .btn-sm {
+    min-height: 34px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+body.course-page form.inline-form , .admin-layout-page .course-page form.inline-form {
+    display: inline;
+}
+
+/* ---------- Trạng thái rỗng ---------- */
+body.course-page .empty-state , .admin-layout-page .course-page .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+body.course-page .empty-state p , .admin-layout-page .course-page .empty-state p {
+    margin: 0 0 16px;
+}
+
+/* ---------- Phân trang ---------- */
+body.course-page .pagination , .admin-layout-page .course-page .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+body.course-page .page-links , .admin-layout-page .course-page .page-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+body.course-page .page-links a , .admin-layout-page .course-page .page-links a {
+    min-width: 38px;
+    padding: 7px 12px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+body.course-page .page-links a.current , .admin-layout-page .course-page .page-links a.current {
+    color: #fff;
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+body.course-page .page-links a.disabled , .admin-layout-page .course-page .page-links a.disabled {
+    color: #a0aaba;
+    pointer-events: none;
+}
+
+/* ---------- Chi tiết khóa học (S07) ---------- */
+body.course-page .detail-layout , .admin-layout-page .course-page .detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+body.course-page .detail-title , .admin-layout-page .course-page .detail-title {
+    margin: 10px 0 16px;
+    color: var(--primary);
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+/* giữ xuống dòng của mô tả nhưng vẫn dùng th:text (chống XSS) */
+body.course-page .detail-description , .admin-layout-page .course-page .detail-description {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+body.course-page .info-list , .admin-layout-page .course-page .info-list {
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+}
+
+body.course-page .info-list li , .admin-layout-page .course-page .info-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+body.course-page .info-list li span:first-child , .admin-layout-page .course-page .info-list li span:first-child {
+    color: var(--muted);
+}
+
+body.course-page .enrolled-label , .admin-layout-page .course-page .enrolled-label {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    text-align: center;
+    color: #146c43;
+    background: #d1e7dd;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+body.course-page .action-stack , .admin-layout-page .course-page .action-stack {
+    display: grid;
+    gap: 10px;
+}
+
+/* ---------- Form tạo/sửa khóa học (S09) ---------- */
+body.course-page .page-heading , .admin-layout-page .course-page .page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+body.course-page .field-error , .admin-layout-page .course-page .field-error {
+    display: block;
+    margin-top: 5px;
+    color: var(--danger);
+    font-size: 13px;
+}
+
+body.course-page .has-error input, .admin-layout-page .course-page .has-error input,
+body.course-page .has-error select, .admin-layout-page .course-page .has-error select,
+body.course-page .has-error textarea , .admin-layout-page .course-page .has-error textarea {
+    border-color: var(--danger);
+}
+
+body.course-page .form-actions , .admin-layout-page .course-page .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+body.course-page .form-card , .admin-layout-page .course-page .form-card {
+    max-width: 760px;
+}
+
+body.course-page td.cell-name , .admin-layout-page .course-page td.cell-name {
+    min-width: 220px;
+    font-weight: 700;
+    color: var(--primary);
+    overflow-wrap: anywhere;
+}
+
+body.course-page td.cell-actions , .admin-layout-page .course-page td.cell-actions {
+    white-space: nowrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+    body.course-page .course-grid , .admin-layout-page .course-page .course-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.course-page .course-toolbar , .admin-layout-page .course-page .course-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    body.course-page .detail-layout , .admin-layout-page .course-page .detail-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    body.course-page .course-grid , .admin-layout-page .course-page .course-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.course-page .course-toolbar , .admin-layout-page .course-page .course-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ---------- Toolbar cua trang quan ly khoa hoc ---------- */
+body.course-page .lesson-toolbar , .admin-layout-page .course-page .lesson-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+body.course-page .lesson-toolbar form , .admin-layout-page .course-page .lesson-toolbar form {
+    margin: 0;
+}
+/* Anh bia khoa hoc tren the va trang chi tiet (hoc vien / khach) */
+.course-card-cover {
+    height: 150px;
+    margin-bottom: 4px;
+}
+
+.course-detail-cover {
+    height: 260px;
+    margin-bottom: 14px;
+}

@@ -1,0 +1,79 @@
+/* ==========================================================================
+   DASHBOARD Student + Instructor – MF-02 (Member 2)
+   File RIÊNG. Khung (sidebar, topbar, thẻ số liệu, bảng...) dùng lại class của Admin trong
+   style.css (body.admin-layout-page). File này chỉ bổ sung vài thành phần mà Admin chưa có,
+   và chỉ có hiệu lực trong body.dashboard-page.
+   ========================================================================== */
+
+body.dashboard-page .dash-courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+/* ---------- Danh sách bài tập / lượt đăng ký ---------- */
+body.dashboard-page .dash-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+body.dashboard-page .dash-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5eaf1;
+}
+
+body.dashboard-page .dash-list li:last-child {
+    border-bottom: none;
+}
+
+body.dashboard-page .dash-item-title {
+    display: block;
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+body.dashboard-page .dash-item-sub {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Nhãn hạn nộp ---------- */
+body.dashboard-page .badge-due-today {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+body.dashboard-page .badge-due-soon {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+body.dashboard-page .badge-due-ok {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+/* ---------- Ô trống ---------- */
+body.dashboard-page .dash-empty {
+    padding: 24px 12px;
+    color: #64748b;
+    text-align: center;
+    font-size: 13px;
+}
+
+body.dashboard-page .dash-empty p {
+    margin: 0 0 12px;
+}
+
+body.dashboard-page .metric-value-sm {
+    font-size: 22px;
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--
+    S06 – Course List (UC06)   |   GET /courses
+    Model: courses (Page<CourseSummaryDto>), keyword, level, sort, levels, currentPage, totalPages, totalElements
+-->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách khóa học - Japanese LMS</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- CSS riêng của module Course (chỉ có hiệu lực trong body.course-page) -->
+    <link rel="stylesheet" th:href="@{/css/course.css}">
+</head>
+<body class="course-page">
+
+<!-- Thanh điều hướng dùng chung của Leader -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+    <div class="container">
+
+        <header class="page-header">
+            <h1 class="page-title">Khóa học tiếng Nhật</h1>
+            <p class="page-subtitle">Tìm khóa học phù hợp với cấp độ JLPT của bạn.</p>
+        </header>
+
+        <!-- Thông báo (flash) từ redirect, ví dụ: đăng ký thất bại vì khóa học đã ngừng hoạt động -->
+        <div class="alert alert-success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+        <!-- Bộ lọc: gửi bằng GET để có thể bookmark / chia sẻ liên kết (BR4) -->
+        <section class="card">
+            <form class="course-toolbar" th:action="@{/courses}" method="get" role="search">
+
+                <div class="form-group">
+                    <label class="form-label" for="keyword">Tìm theo tên khóa học</label>
+                    <input id="keyword" type="search" name="keyword"
+                           maxlength="100"
+                           placeholder="Ví dụ: Minna no Nihongo"
+                           th:value="${keyword}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="level">Cấp độ JLPT</label>
+                    <select id="level" name="level">
+                        <option value="">Tất cả cấp độ</option>
+                        <option th:each="lv : ${levels}"
+                                th:value="${lv.name()}"
+                                th:text="${lv.name()}"
+                                th:selected="${lv.name() == level}">N5
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sort">Sắp xếp</label>
+                    <select id="sort" name="sort">
+                        <option value="createdAt,desc" th:selected="${sort == 'createdAt,desc'}">Mới nhất</option>
+                        <option value="createdAt,asc" th:selected="${sort == 'createdAt,asc'}">Cũ nhất</option>
+                        <option value="courseName,asc" th:selected="${sort == 'courseName,asc'}">Tên A → Z</option>
+                        <option value="courseName,desc" th:selected="${sort == 'courseName,desc'}">Tên Z → A</option>
+                    </select>
+                </div>
+
+                <div class="toolbar-actions">
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                    <a th:href="@{/courses}" class="btn btn-outline">Đặt lại</a>
+                </div>
+            </form>
+        </section>
+
+        <p class="result-summary" style="margin-top: 22px;">
+            Tìm thấy <strong th:text="${totalElements}">0</strong> khóa học
+        </p>
+
+        <!-- Lưới thẻ khóa học -->
+        <section class="course-grid" th:if="${!courses.isEmpty()}">
+            <article class="course-card" th:each="c : ${courses.content}">
+
+                <img class="course-cover course-card-cover"
+                     th:if="${c.hasCover}"
+                     th:src="@{/files/course-images/{id}(id=${c.courseId}, v=${c.coverVersion})}"
+                     th:alt="${c.courseName}"
+                     loading="lazy">
+
+                <div class="course-card-head">
+                    <span class="badge"
+                          th:classappend="${'badge-' + #strings.toLowerCase(c.jlptLevel)}"
+                          th:text="${c.jlptLevel}">N5</span>
+                </div>
+
+                <h2 class="course-card-title">
+                    <a th:href="@{/courses/{id}(id=${c.courseId})}" th:text="${c.courseName}">Tên khóa học</a>
+                </h2>
+
+                <p class="course-meta">
+                    Giảng viên: <strong th:text="${c.instructorName}">Giảng viên</strong>
+                </p>
+
+                <p class="course-desc"
+                   th:text="${c.description != null ? #strings.abbreviate(c.description, 120) : 'Chưa có mô tả.'}">
+                    Mô tả ngắn của khóa học...
+                </p>
+
+                <div class="course-card-actions">
+                    <a th:href="@{/courses/{id}(id=${c.courseId})}" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                </div>
+            </article>
+        </section>
+
+        <!-- Không có kết quả -->
+        <section class="card empty-state" th:if="${courses.isEmpty()}">
+            <!-- Trang vượt quá tổng số trang (E3): có dữ liệu nhưng trang này rỗng -> về trang đầu -->
+            <p th:if="${totalElements > 0}">Trang này không có dữ liệu.</p>
+            <p th:if="${totalElements == 0}">Không tìm thấy khóa học phù hợp. Hãy thử từ khóa hoặc cấp độ khác.</p>
+            <a th:href="@{/courses(keyword=${keyword},level=${level},sort=${sort},page=0)}"
+               class="btn btn-outline">Về trang đầu</a>
+        </section>
+
+        <!-- Phân trang: giữ nguyên keyword / level / sort khi chuyển trang. Giao diện hiển thị trang +1 (BR5) -->
+        <nav class="pagination" th:if="${totalPages > 1}" aria-label="Phân trang khóa học">
+            <span>Trang <strong th:text="${currentPage + 1}">1</strong>
+                / <strong th:text="${totalPages}">1</strong></span>
+
+            <div class="page-links">
+                <a th:classappend="${currentPage == 0} ? 'disabled' : ''"
+                   th:href="@{/courses(keyword=${keyword},level=${level},sort=${sort},page=${currentPage - 1})}">←
+                    Trước</a>
+
+                <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == currentPage} ? 'current' : ''"
+                   th:href="@{/courses(keyword=${keyword},level=${level},sort=${sort},page=${i})}">1</a>
+
+                <a th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''"
+                   th:href="@{/courses(keyword=${keyword},level=${level},sort=${sort},page=${currentPage + 1})}">Sau
+                    →</a>
+            </div>
+        </nav>
+
+    </div>
+</main>
+
+<!-- Chân trang dùng chung -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+    S08 – My Courses (UC10)   |   GET /my-courses
+    Model: enrollments (Page<MyCourseDto>), currentPage, totalPages, totalElements
+-->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khóa học của tôi - Japanese LMS</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/course.css}">
+</head>
+<body class="course-page">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+    <div class="container">
+
+        <header class="page-header">
+            <h1 class="page-title">Khóa học của tôi</h1>
+            <p class="page-subtitle">
+                Bạn đã đăng ký <strong th:text="${totalElements}">0</strong> khóa học.
+            </p>
+        </header>
+
+        <div class="alert alert-success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+        <!-- Danh sách khóa học đã đăng ký -->
+        <section class="course-grid" th:if="${!enrollments.isEmpty()}">
+            <article class="course-card"
+                     th:each="e : ${enrollments.content}"
+                     th:classappend="${e.courseStatus == 'INACTIVE'} ? 'is-inactive' : ''">
+
+                <img class="course-cover course-card-cover"
+                     th:if="${e.hasCover}"
+                     th:src="@{/files/course-images/{id}(id=${e.courseId}, v=${e.coverVersion})}"
+                     th:alt="${e.courseName}"
+                     loading="lazy">
+
+                <div class="course-card-head">
+                    <span class="badge"
+                          th:classappend="${'badge-' + #strings.toLowerCase(e.jlptLevel)}"
+                          th:text="${e.jlptLevel}">N5</span>
+
+                    <!-- BR2: khóa học đã INACTIVE vẫn hiển thị, kèm nhãn trạng thái -->
+                    <span class="badge"
+                          th:classappend="${e.courseStatus == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'"
+                          th:text="${e.courseStatus == 'ACTIVE'} ? 'Đang mở' : 'Ngừng hoạt động'">Đang mở</span>
+                </div>
+
+                <h2 class="course-card-title" th:text="${e.courseName}">Tên khóa học</h2>
+
+                <p class="course-meta">
+                    Giảng viên: <strong th:text="${e.instructorName}">Giảng viên</strong><br>
+                    Ngày đăng ký:
+                    <span th:text="${#temporals.format(e.enrolledAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</span>
+                </p>
+
+                <div class="course-card-actions">
+                    <!-- Khóa học còn ACTIVE: cho vào học. URL danh sách bài học thuộc MF-03 (Member 3) -->
+                    <a th:if="${e.courseStatus == 'ACTIVE'}"
+                       th:href="@{/student/courses/{id}/lessons(id=${e.courseId})}"
+                       class="btn btn-primary btn-sm">Vào học</a>
+
+                    <span th:if="${e.courseStatus != 'ACTIVE'}" class="course-meta">
+                        Khóa học đã ngừng hoạt động.
+                    </span>
+                </div>
+            </article>
+        </section>
+
+        <!-- A1: chưa đăng ký khóa học nào -->
+        <section class="card empty-state" th:if="${enrollments.isEmpty() and totalElements == 0}">
+            <p>Bạn chưa đăng ký khóa học nào.</p>
+            <a th:href="@{/courses}" class="btn btn-primary">Khám phá khóa học</a>
+        </section>
+
+        <!-- E3: số trang vượt quá tổng số trang -> trang rỗng kèm liên kết về trang đầu -->
+        <section class="card empty-state" th:if="${enrollments.isEmpty() and totalElements > 0}">
+            <p>Trang này không có dữ liệu.</p>
+            <a th:href="@{/my-courses(page=0)}" class="btn btn-outline">Về trang đầu</a>
+        </section>
+
+        <!-- A2: phân trang -->
+        <nav class="pagination" th:if="${totalPages > 1}" aria-label="Phân trang khóa học của tôi">
+            <span>Trang <strong th:text="${currentPage + 1}">1</strong>
+                / <strong th:text="${totalPages}">1</strong></span>
+
+            <div class="page-links">
+                <a th:classappend="${currentPage == 0} ? 'disabled' : ''"
+                   th:href="@{/my-courses(page=${currentPage - 1})}">← Trước</a>
+
+                <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == currentPage} ? 'current' : ''"
+                   th:href="@{/my-courses(page=${i})}">1</a>
+
+                <a th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''"
+                   th:href="@{/my-courses(page=${currentPage + 1})}">Sau →</a>
+            </div>
+        </nav>
+
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

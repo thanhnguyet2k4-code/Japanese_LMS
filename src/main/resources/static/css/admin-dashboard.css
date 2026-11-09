@@ -1,0 +1,770 @@
+/* ==========================================================================
+   ADMIN DASHBOARD CSS - MODULE MF-01
+   Scoped strictly under .admin-dashboard to protect global style integrity.
+   ========================================================================== */
+
+/* 1. Main Container & Inner Layout */
+.admin-dashboard {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #f8fafc;
+    min-height: 100%;
+}
+
+.admin-dashboard .dashboard-inner {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 3rem;
+    box-sizing: border-box;
+}
+
+/* 2. Header & Welcome Area */
+.admin-dashboard .dashboard-header-section {
+    margin-bottom: 1.75rem;
+}
+
+.admin-dashboard .sub-header-title {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+
+.admin-dashboard .page-main-title {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.6rem, 2.2vw, 2.25rem);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+}
+
+.admin-dashboard .welcome-text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.admin-dashboard .welcome-text b {
+    color: #1e293b;
+}
+
+/* 3. Toast Notification */
+.admin-dashboard .toast-notification {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    font-size: 0.925rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: adminToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+}
+
+@keyframes adminToastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.admin-dashboard .toast-notification.toast-success {
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.admin-dashboard .toast-notification.toast-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.admin-dashboard .toast-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.65;
+    padding: 0 0.25rem;
+    transition: opacity 0.15s ease;
+}
+
+.admin-dashboard .toast-close:hover {
+    opacity: 1;
+}
+
+/* 4. Stat Cards (4 thẻ chỉ số tổng quan) */
+.admin-dashboard .dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.25rem;
+}
+
+.admin-dashboard .stat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    text-decoration: none;
+    color: #1e293b;
+    min-height: 148px;
+    box-sizing: border-box;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-dashboard .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(30, 41, 59, 0.08);
+    border-color: #93c5fd;
+}
+
+.admin-dashboard .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-dashboard .stat-title {
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.admin-dashboard .stat-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+}
+
+.admin-dashboard .stat-value {
+    font-size: clamp(1.85rem, 2.4vw, 2.35rem);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    margin: 0.65rem 0 0.5rem;
+    line-height: 1;
+}
+
+.admin-dashboard .stat-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.825rem;
+    color: #64748b;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.65rem;
+    margin-top: 0.25rem;
+}
+
+.admin-dashboard .stat-link-arrow {
+    color: #2563eb;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+}
+
+.admin-dashboard .stat-card:hover .stat-link-arrow {
+    transform: translateX(4px);
+}
+
+/* 5. Section Titles */
+.admin-dashboard .dashboard-section-title {
+    margin: 0 0 1.5rem;
+}
+
+.admin-dashboard .dashboard-section-title h2 {
+    font-size: 1.5rem;        /* 24px */
+    font-weight: 750;
+    color: #1e293b;
+    line-height: 1.4;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+}
+
+.admin-dashboard .dashboard-section-title p {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* 6. Quick Actions Grid (3 tác vụ trọng tâm) */
+.admin-dashboard .dashboard-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.admin-dashboard .action-tile {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.35rem;
+    text-decoration: none;
+    color: #1e293b;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    box-sizing: border-box;
+    min-width: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-dashboard .action-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(30, 41, 59, 0.08);
+    border-color: #93c5fd;
+}
+
+.admin-dashboard .action-tile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    font-size: 1.35rem;
+}
+
+.admin-dashboard .action-tile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-dashboard .action-tile-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.4rem;
+    line-height: 1.3;
+}
+
+.admin-dashboard .action-tile-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.admin-dashboard .action-tile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #2563eb;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-dashboard .action-tile:hover .action-tile-btn {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+/* 7. Data & Analytics Section */
+.admin-dashboard .dashboard-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.admin-dashboard .dashboard-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.admin-dashboard .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-dashboard .panel-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.015em;
+}
+
+.admin-dashboard .panel-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.admin-dashboard .panel-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.admin-dashboard .panel-link:hover {
+    background-color: #eff6ff;
+    text-decoration: underline;
+}
+
+.admin-dashboard .panel-stat-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* 8. Table Styles */
+.admin-dashboard .dashboard-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
+.admin-dashboard .dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+    text-align: left;
+}
+
+.admin-dashboard .dashboard-table th {
+    padding: 0.75rem 0.85rem;
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.admin-dashboard .dashboard-table th.th-actions {
+    text-align: right;
+    padding-right: 1rem;
+}
+
+.admin-dashboard .dashboard-table td {
+    padding: 0.875rem 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.admin-dashboard .dashboard-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-dashboard .dashboard-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+.admin-dashboard .student-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-dashboard .student-avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+.admin-dashboard .student-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-dashboard .student-name {
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.admin-dashboard .student-role {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.admin-dashboard .student-email {
+    color: #475569;
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+
+.admin-dashboard .student-date {
+    color: #64748b;
+    font-size: 0.825rem;
+    white-space: nowrap;
+}
+
+.admin-dashboard .td-actions {
+    text-align: right;
+    white-space: nowrap;
+    padding-right: 1rem;
+}
+
+.admin-dashboard .row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.admin-dashboard .dashboard-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.admin-dashboard .dashboard-btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.admin-dashboard .dashboard-btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.admin-dashboard .dashboard-btn-outline {
+    background-color: #ffffff;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.admin-dashboard .dashboard-btn-outline:hover {
+    background-color: #fef2f2;
+    border-color: #f87171;
+}
+
+/* 9. Empty States */
+.admin-dashboard .dashboard-empty {
+    padding: 2.5rem 1rem !important;
+    text-align: center;
+}
+
+.admin-dashboard .empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+}
+
+.admin-dashboard .empty-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #ecfdf5;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.admin-dashboard .empty-state-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.35rem;
+}
+
+.admin-dashboard .empty-state-sub {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 0.75rem;
+    max-width: 320px;
+}
+
+.admin-dashboard .empty-link-history {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.admin-dashboard .empty-link-history:hover {
+    text-decoration: underline;
+}
+
+/* 10. JLPT Course Distribution */
+.admin-dashboard .jlpt-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.admin-dashboard .jlpt-empty-icon {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.75;
+}
+
+.admin-dashboard .jlpt-empty-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.35rem;
+}
+
+.admin-dashboard .jlpt-empty-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+.admin-dashboard .jlpt-levels-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+.admin-dashboard .level-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.admin-dashboard .level-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+.admin-dashboard .level-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.admin-dashboard .badge-n5 {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.admin-dashboard .badge-n4 {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.admin-dashboard .badge-n3 {
+    background-color: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+}
+
+.admin-dashboard .level-track {
+    width: 100%;
+    height: 10px;
+    background-color: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.admin-dashboard .level-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-dashboard .fill-n5 {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.admin-dashboard .fill-n4 {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.admin-dashboard .fill-n3 {
+    background: linear-gradient(90deg, #a855f7, #9333ea);
+}
+
+/* ==========================================================================
+   11. RESPONSIVE BREAKPOINTS (ALL SELECTORS SCOPED UNDER .admin-dashboard)
+   ========================================================================== */
+
+/* Breakpoint: Laptop / Tablet Landscape (<= 1024px) */
+@media (max-width: 1024px) {
+    .admin-dashboard .dashboard-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .admin-dashboard .dashboard-actions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .admin-dashboard .dashboard-columns {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+/* Breakpoint: Mobile (<= 768px) */
+@media (max-width: 768px) {
+    .admin-dashboard .dashboard-inner {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .admin-dashboard .dashboard-metrics {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .admin-dashboard .dashboard-actions-grid {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+        margin-bottom: 2rem;
+    }
+
+    .admin-dashboard .dashboard-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard .stat-card {
+        min-height: auto;
+        padding: 1.15rem;
+    }
+
+    .admin-dashboard .action-tile {
+        padding: 1.15rem;
+    }
+
+    .admin-dashboard .dashboard-panel {
+        padding: 1.15rem;
+    }
+
+    .admin-dashboard .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .admin-dashboard .panel-link {
+        padding-left: 0;
+    }
+}
+
+/* Breakpoint: Small Mobile (<= 390px) */
+@media (max-width: 390px) {
+    .admin-dashboard .dashboard-inner {
+        padding: 1rem 0.75rem 1.5rem;
+    }
+
+    .admin-dashboard .page-main-title {
+        font-size: 1.45rem;
+    }
+
+    .admin-dashboard .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .admin-dashboard .action-tile {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .admin-dashboard .action-tile-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 1.15rem;
+    }
+}

@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+
+<head>
+    <title>Thông tin tài khoản - Japanese LMS</title>
+</head>
+
+<body>
+
+<main layout:fragment="content" class="admin-account-form-page">
+
+    <div class="breadcrumb">
+        <a th:href="@{/admin}">Trang quản trị</a>
+        /
+        <a th:href="@{/admin/accounts}">Quản lý tài khoản</a>
+        / <span th:text="${isEdit} ? 'Chỉnh sửa' : 'Tạo mới'">Tạo mới</span>
+    </div>
+
+    <section class="card">
+
+        <h2 th:text="${isEdit} ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'">
+            Tạo tài khoản mới
+        </h2>
+
+        <p class="description"
+           th:text="${isEdit}
+               ? 'Chỉ cập nhật họ tên, email và số điện thoại.'
+               : 'Tạo tài khoản giảng viên hoặc quản trị viên.'">
+            Nhập thông tin tài khoản.
+        </p>
+
+        <!-- Thông báo lỗi nghiệp vụ -->
+        <div class="error"
+             th:if="${errorMessage != null}"
+             th:text="${errorMessage}">
+            Đã xảy ra lỗi.
+        </div>
+
+        <form method="post"
+              novalidate
+              th:action="${isEdit}
+                  ? @{/admin/accounts/{id}/edit(id=${account.userId})}
+                  : @{/admin/accounts}"
+              th:object="${account}">
+
+            <div class="form-group">
+                <label for="fullName">Họ và tên</label>
+
+                <input type="text"
+                       id="fullName"
+                       th:field="*{fullName}"
+                       maxlength="100"
+                       th:classappend="${#fields.hasErrors('fullName')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('fullName')}"
+                       th:errors="*{fullName}"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+
+                <input type="email"
+                       id="email"
+                       th:field="*{email}"
+                       maxlength="150"
+                       th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('email')}"
+                       th:errors="*{email}"></small>
+            </div>
+
+            <div class="form-group" th:if="${!isEdit}">
+                <label for="initialPassword">Mật khẩu ban đầu</label>
+
+                <input type="password"
+                       id="initialPassword"
+                       th:field="*{initialPassword}"
+                       minlength="8"
+                       th:classappend="${#fields.hasErrors('initialPassword')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('initialPassword')}"
+                       th:errors="*{initialPassword}"></small>
+            </div>
+
+            <div class="form-group" th:if="${!isEdit}">
+                <label for="role">Vai trò</label>
+
+                <select id="role"
+                        th:field="*{role}"
+                        th:classappend="${#fields.hasErrors('role')} ? ' is-invalid'">
+
+                    <option value="">-- Chọn vai trò --</option>
+                    <option value="INSTRUCTOR">Giảng viên</option>
+                    <option value="ADMIN">Quản trị viên</option>
+                </select>
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('role')}"
+                       th:errors="*{role}"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Số điện thoại</label>
+
+                <input type="text"
+                       id="phone"
+                       th:field="*{phone}"
+                       maxlength="20"
+                       th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('phone')}"
+                       th:errors="*{phone}"></small>
+            </div>
+
+            <div class="form-actions">
+
+                <a th:href="@{/admin/accounts}"
+                   class="btn btn-secondary">
+                    Hủy
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo tài khoản'">
+                    Lưu
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+</body>
+</html>

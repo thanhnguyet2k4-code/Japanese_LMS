@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!--
+    LAYOUT CHUNG cho Student + Instructor (giống AdminLayout: Sidebar trái + Topbar + nội dung).
+    Trang con dùng:  layout:decorate="~{layout/UserLayout}"  và  layout:fragment="content".
+    Trang con gửi model "currentTab" để tô sáng mục đang chọn trên Sidebar.
+
+    >>> KHI MERGE CHỨC NĂNG CỦA THÀNH VIÊN KHÁC: chỉ cần thêm một thẻ <a class="sidebar-item"> vào
+        đúng khối [STUDENT] hoặc [INSTRUCTOR] bên dưới (có sẵn ví dụ trong phần chú thích).
+-->
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Japanese LMS</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/course.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <th:block layout:fragment="head"></th:block>
+</head>
+
+<body class="admin-layout-page course-page dashboard-page">
+
+<div class="admin-layout" id="adminLayout">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="Menu chức năng">
+
+        <div class="sidebar-heading">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-mark" aria-hidden="true">日</span>
+                <div class="sidebar-brand-info">
+                    <h2>Japanese LMS</h2>
+                    <p sec:authorize="hasRole('STUDENT')">KHU VỰC HỌC VIÊN</p>
+                    <p sec:authorize="hasRole('INSTRUCTOR')">KHU VỰC GIẢNG VIÊN</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <th:block sec:authorize="hasRole('STUDENT')">
+                <a th:href="@{/student}" class="sidebar-item"
+                   th:classappend="${currentTab == 'dashboard' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'dashboard' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">📊</span>
+                    <span class="sidebar-item-text">Tổng quan</span>
+                </a>
+                <a th:href="@{/courses}" class="sidebar-item"
+                   th:classappend="${currentTab == 'courses' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'courses' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">🔎</span>
+                    <span class="sidebar-item-text">Khám phá khóa học</span>
+                </a>
+                <a th:href="@{/my-courses}" class="sidebar-item"
+                   th:classappend="${currentTab == 'my-courses' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'my-courses' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">📚</span>
+                    <span class="sidebar-item-text">Khóa học của tôi</span>
+                </a>
+                <a th:href="@{/student/lesson-courses}" class="sidebar-item"
+                   th:classappend="${currentTab == 'lessons' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'lessons' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">🎬</span>
+                    <span class="sidebar-item-text">Bài học &amp; bài tập</span>
+                </a>
+                <a th:href="@{/student/grades}" class="sidebar-item"
+                   th:classappend="${currentTab == 'grades' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'grades' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">🏅</span>
+                    <span class="sidebar-item-text">Điểm của tôi</span>
+                </a>
+            </th:block>
+            <th:block sec:authorize="hasRole('INSTRUCTOR')">
+                <a th:href="@{/instructor}" class="sidebar-item"
+                   th:classappend="${currentTab == 'dashboard' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'dashboard' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">📊</span>
+                    <span class="sidebar-item-text">Tổng quan</span>
+                </a>
+                <a th:href="@{/instructor/courses}" class="sidebar-item"
+                   th:classappend="${currentTab == 'instructor-courses' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'instructor-courses' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">📚</span>
+                    <span class="sidebar-item-text">Quản lý khóa học</span>
+                </a>
+                <a th:href="@{/instructor/lesson-courses}" class="sidebar-item"
+                   th:classappend="${currentTab == 'lessons' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'lessons' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">🎬</span>
+                    <span class="sidebar-item-text">Bài học &amp; tài liệu</span>
+                </a>
+                <a th:href="@{/instructor/grading}" class="sidebar-item"
+                   th:classappend="${currentTab == 'grading' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'grading' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">📝</span>
+                    <span class="sidebar-item-text">Chấm bài</span>
+                </a>
+                <a th:href="@{/instructor/results}" class="sidebar-item"
+                   th:classappend="${currentTab == 'assessment-results' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'assessment-results' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">🏅</span>
+                    <span class="sidebar-item-text">Kết quả đánh giá</span>
+                </a>
+            </th:block>
+            <a th:href="@{/profile}" class="sidebar-item"
+                   th:classappend="${currentTab == 'profile' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">👤</span>
+                    <span class="sidebar-item-text">Hồ sơ cá nhân</span>
+                </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-version-tag"><span>Japanese LMS v1.0</span></div>
+        </div>
+    </aside>
+
+    <!-- ================= PHẦN BÊN PHẢI ================= -->
+    <div class="admin-right">
+
+        <!-- Topbar -->
+        <header>
+            <div class="admin-topbar">
+                <div class="admin-topbar-left">
+                    <button type="button" class="admin-icon-btn" id="adminSidebarToggle"
+                            aria-label="Ẩn hoặc hiện thanh điều hướng" aria-controls="adminSidebar"
+                            aria-expanded="true">
+                        <span aria-hidden="true">☰</span>
+                    </button>
+
+                    <!-- Học viên: tìm khóa học nhanh (dùng lại tham số keyword của S06) -->
+                    <form class="admin-search" sec:authorize="hasRole('STUDENT')"
+                          th:action="@{/courses}" method="get" role="search">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <input type="search" name="keyword" placeholder="Tìm khóa học..."
+                               aria-label="Tìm khóa học">
+                        <kbd class="search-kbd" title="Phím tắt tìm kiếm: Ctrl + K">Ctrl K</kbd>
+                    </form>
+                </div>
+
+                <div class="admin-topbar-right">
+                    <details class="admin-account">
+                        <summary aria-label="Mở menu tài khoản">
+                            <span class="admin-avatar" aria-hidden="true"
+                                  th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">U</span>
+                            <span class="admin-account-label" sec:authentication="name">user</span>
+                            <span class="admin-chevron" aria-hidden="true">▾</span>
+                        </summary>
+
+                        <div class="admin-account-menu">
+                            <div class="account-menu-header">
+                                <span class="account-role-tag" sec:authorize="hasRole('STUDENT')">Học viên</span>
+                                <span class="account-role-tag" sec:authorize="hasRole('INSTRUCTOR')">Giảng viên</span>
+                            </div>
+
+                            <a th:href="@{/profile}"><span aria-hidden="true">👤</span> Hồ sơ cá nhân</a>
+
+                            <form th:action="@{/logout}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit"><span aria-hidden="true">🚪</span> Đăng xuất</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nội dung từng trang -->
+        <main class="admin-main">
+            <div class="admin-content" layout:fragment="content">
+                <p>Nội dung trang sẽ hiển thị tại đây.</p>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleButton = document.getElementById('adminSidebarToggle');
+        const layout = document.getElementById('adminLayout');
+
+        if (toggleButton && layout) {
+            toggleButton.addEventListener('click', function () {
+                const isCollapsed = layout.classList.toggle('sidebar-collapsed');
+                toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+            });
+        }
+
+        // Ctrl + K: focus nhanh vào ô tìm kiếm (nếu có)
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                const searchInput = document.querySelector('.admin-search input');
+                if (searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

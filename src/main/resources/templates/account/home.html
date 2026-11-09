@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Trang quản trị - Japanese LMS</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Thanh dieu huong dung chung -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+    <div class="container">
+
+        <header class="page-header">
+            <p class="page-subtitle">KHU VUC QUAN TRI</p>
+            <h1 class="page-title">Trang quản trị Japanese LMS</h1>
+            <p class="page-subtitle">
+                Chào mừng bạn đến với khu vực quản trị hệ thống.
+            </p>
+        </header>
+
+        <section class="card">
+            <h2 class="card-title">Quản lý hệ thống</h2>
+
+            <p>
+                Quản lý yêu cầu đăng ký và tài khoản người dùng
+                tại các chức năng dưới đây.
+            </p>
+
+            <div class="nav-links">
+                <a th:href="@{/admin/registrations}" class="btn btn-primary">
+                    Quản lý yêu cầu đăng ký
+                </a>
+
+                <a th:href="@{/admin/accounts}" class="btn btn-outline">
+                    Quản lý tài khoản
+                </a>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<!-- Chan trang dung chung -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
