@@ -1,1 +1,131 @@
-<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Japanese LMS - MF05</title><link rel="stylesheet" th:href="@{/css/style.css}"><style>body{font-family:Arial,sans-serif;background:#f5f7fb;color:#172238}main{max-width:1050px;margin:32px auto;padding:24px;background:white;border-radius:12px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #ddd;text-align:left;padding:12px}a{color:#1658a8}input,textarea,button,select{padding:9px;margin:5px 0}input,textarea{max-width:100%;box-sizing:border-box}button,.action{background:#1959ad;color:white;border:0;border-radius:5px;padding:9px 14px;cursor:pointer;text-decoration:none}.error{color:#b42318}.ok{color:green}.pagination{margin:18px 0} .muted{color:#667085}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body><div th:replace="~{fragments/navbar :: navbar}"></div><main><h1>S22 - Danh sách kết quả đánh giá</h1><form th:if="${isAdmin}" th:action="@{/admin/results}" method="get"><label>Lọc theo mã khóa học: <input type="number" min="1" name="courseId" th:value="${courseId}"></label><button type="submit">Lọc</button> <a th:href="@{/admin/results}">Xóa lọc</a></form><table><thead><tr><th>Học viên</th><th>Khóa học</th><th>Bài tập</th><th>Điểm</th><th>Chi tiết</th></tr></thead><tbody><tr th:each="s : ${results.content}"><td th:text="${s.student.fullName}"></td><td th:text="${s.assignment.course.courseName}"></td><td th:text="${s.assignment.title}"></td><td th:text="${s.grade == null ? 'Chưa chấm' : s.grade}"></td><td><a th:href="${isAdmin ? '/admin/results/' + s.submissionId : '/instructor/results/' + s.submissionId}">Xem</a></td></tr><tr th:if="${results.empty}"><td colspan="5">Không có kết quả.</td></tr></tbody></table><div class="pagination"><a th:if="${results.hasPrevious()}" th:href="${isAdmin ? '/admin/results?page=' + (results.number-1) + (courseId == null ? '' : '&courseId=' + courseId) : '/instructor/results?page=' + (results.number-1)}">← Trang trước</a><span th:text="${' Trang ' + (results.number+1) + ' / ' + (results.totalPages == 0 ? 1 : results.totalPages) + ' '}"></span><a th:if="${results.hasNext()}" th:href="${isAdmin ? '/admin/results?page=' + (results.number+1) + (courseId == null ? '' : '&courseId=' + courseId) : '/instructor/results?page=' + (results.number+1)}">Trang sau →</a></div></main><div th:replace="~{fragments/footer :: footer}"></div></body></html>
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+<head>
+    <title>Kết quả đánh giá - Japanese LMS</title>
+    <link rel="stylesheet" th:href="@{/css/admin-assessment-results.css}">
+</head>
+<body>
+<div layout:fragment="content" class="admin-assessment-results">
+    <div class="results-inner">
+
+        <!-- Tiêu đề trang -->
+        <div class="results-header-section">
+            <span class="sub-header-title">KHU VỰC QUẢN TRỊ</span>
+            <h1 class="page-main-title">S22 - Danh sách kết quả đánh giá</h1>
+            <p class="welcome-text">
+                Theo dõi và quản lý điểm số, kết quả đánh giá bài tập của học viên trong hệ thống.
+            </p>
+        </div>
+
+        <!-- Bộ lọc kết quả theo khóa học (Dành cho Admin) -->
+        <div class="filter-card" th:if="${isAdmin}">
+            <form th:action="@{/admin/assessment-results}" method="get" class="filter-form">
+                <div class="filter-group">
+                    <label for="courseIdInput" class="filter-label">Lọc theo mã khóa học:</label>
+                    <input type="number" min="1" id="courseIdInput" name="courseId" th:value="${courseId}"
+                           placeholder="Nhập ID khóa học..." class="filter-input">
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn-filter-submit">
+                        <span>🔍</span> Lọc
+                    </button>
+                    <a th:href="@{/admin/assessment-results}" class="btn-filter-clear">
+                        Xóa lọc
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bảng danh sách kết quả -->
+        <div class="results-table-card">
+            <div class="table-card-header">
+                <h2 class="table-card-title">Kết quả đánh giá học viên</h2>
+                <span class="table-count-badge"
+                      th:text="${results != null ? results.totalElements + ' bản ghi' : '0 bản ghi'}">
+                    0 bản ghi
+                </span>
+            </div>
+
+            <div class="results-table-wrapper">
+                <table class="results-table" aria-label="Bảng danh sách kết quả đánh giá">
+                    <thead>
+                    <tr>
+                        <th scope="col">Học viên</th>
+                        <th scope="col">Khóa học</th>
+                        <th scope="col">Bài tập</th>
+                        <th scope="col">Điểm số</th>
+                        <th scope="col" class="th-actions">Chi tiết</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Danh sách từng bài nộp -->
+                    <tr th:each="s : ${results.content}">
+                        <td>
+                            <div class="student-meta">
+                                <span class="student-name" th:text="${s.student.fullName}">Nguyễn Văn A</span>
+                                <span class="student-email" th:text="${s.student.email}">student@example.com</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="course-name" th:text="${s.assignment.course.courseName}">Tiếng Nhật N5</span>
+                        </td>
+                        <td>
+                            <span class="assignment-title" th:text="${s.assignment.title}">Bài tập Kanji tuần 1</span>
+                        </td>
+                        <td>
+                            <span th:if="${s.grade != null}" class="grade-badge grade-scored">
+                                <strong th:text="${s.grade}">8.5</strong> / 10
+                            </span>
+                            <span th:if="${s.grade == null}" class="grade-badge grade-pending">
+                                Chưa chấm
+                            </span>
+                        </td>
+                        <td class="td-actions">
+                            <a th:href="@{${isAdmin ? '/admin/assessment-results/' + s.submissionId : '/instructor/assessment-results/' + s.submissionId}}"
+                               class="btn-detail-action" title="Xem chi tiết kết quả đánh giá">
+                                <span>Xem</span> →
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Trạng thái trống khi không có kết quả -->
+                    <tr th:if="${results.empty}">
+                        <td colspan="5" class="empty-results-cell">
+                            <div class="empty-state-box">
+                                <span class="empty-icon" aria-hidden="true">📋</span>
+                                <p class="empty-title">Không tìm thấy kết quả đánh giá nào</p>
+                                <p class="empty-desc">Chưa có bài tập nào được nộp hoặc phù hợp với bộ lọc hiện tại.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phân trang kết quả -->
+            <div class="pagination-section" th:if="${results != null and results.totalPages > 1}">
+                <div class="pagination-info">
+                    <span th:text="${'Trang ' + (results.number + 1) + ' / ' + (results.totalPages == 0 ? 1 : results.totalPages)}">Trang 1 / 1</span>
+                </div>
+                <div class="pagination-links">
+                    <a th:if="${results.hasPrevious()}"
+                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number - 1}, courseId=${courseId})}"
+                       class="pagination-btn pagination-prev">
+                        ← Trang trước
+                    </a>
+                    <a th:if="${results.hasNext()}"
+                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number + 1}, courseId=${courseId})}"
+                       class="pagination-btn pagination-next">
+                        Trang sau →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

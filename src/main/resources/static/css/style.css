@@ -3145,3 +3145,314 @@ body.admin-registrations-page footer {
     border: 0;
     border-radius: 8px;
 }
+
+/* Admin Topbar - Chỉ giữ Hamburger và Account Dropdown */
+body.admin-layout-page .admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body.admin-layout-page .admin-topbar-left {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+body.admin-layout-page .admin-topbar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+/* ===== Bean Validation Error Styles ===== */
+
+/* Viền đỏ cho ô nhập liệu bị lỗi */
+.is-invalid {
+    border: 1px solid #dc2626 !important;
+    outline: none;
+}
+
+/* Hiệu ứng khi focus vào ô bị lỗi */
+.is-invalid:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+/* Nội dung thông báo lỗi */
+.invalid-feedback {
+    display: block;
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   PHẦN RIÊNG: TOAST NOTIFICATION - QUẢN LÝ TÀI KHOẢN ADMIN
+   Phạm vi: account-toast
+   ========================================================================== */
+
+.account-toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    width: min(380px, calc(100% - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.account-toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #64748b;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    pointer-events: auto;
+    animation: accountToastIn 0.3s ease forwards;
+}
+
+.account-toast-success {
+    border-left-color: #16a34a;
+}
+
+.account-toast-error {
+    border-left-color: #dc2626;
+}
+
+.account-toast-warning {
+    border-left-color: #d97706;
+}
+
+.account-toast-info {
+    border-left-color: #2563eb;
+}
+
+.account-toast-icon {
+    flex-shrink: 0;
+    font-size: 21px;
+    line-height: 1.2;
+}
+
+.account-toast-success .account-toast-icon {
+    color: #16a34a;
+}
+
+.account-toast-error .account-toast-icon {
+    color: #dc2626;
+}
+
+.account-toast-warning .account-toast-icon {
+    color: #d97706;
+}
+
+.account-toast-info .account-toast-icon {
+    color: #2563eb;
+}
+
+.account-toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.account-toast-title {
+    margin: 0 0 4px;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.account-toast-message {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.account-toast-close {
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.account-toast-close:hover {
+    color: #334155;
+}
+
+.account-toast-hide {
+    animation: accountToastOut 0.25s ease forwards;
+}
+
+@keyframes accountToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes accountToastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+@media (max-width: 480px) {
+    .account-toast-container {
+        top: 12px;
+        right: 12px;
+        width: calc(100% - 24px);
+    }
+}
+/* ==========================================================================
+   PHẦN RIÊNG: ADMIN ACCOUNT FORM
+   Phạm vi: .admin-account-form-page
+   Sử dụng cùng AdminLayout
+   ========================================================================== */
+
+.admin-account-form-page {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding-bottom: 24px;
+}
+
+.admin-account-form-page .breadcrumb {
+    color: #64748b;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.admin-account-form-page .breadcrumb a {
+    color: #245b91;
+    text-decoration: none;
+}
+
+.admin-account-form-page .card {
+    background: #ffffff;
+    padding: 28px;
+    border-radius: 10px;
+    border: 1px solid #e7edf4;
+    box-shadow: 0 2px 12px rgba(23, 54, 93, 0.05);
+}
+
+.admin-account-form-page h2 {
+    color: #17365d;
+    margin-top: 0;
+}
+
+.admin-account-form-page .description {
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+.admin-account-form-page .form-group {
+    margin-bottom: 18px;
+}
+
+.admin-account-form-page .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.admin-account-form-page .form-group input,
+.admin-account-form-page .form-group select {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #d5deea;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.admin-account-form-page .form-group input:focus,
+.admin-account-form-page .form-group select:focus {
+    outline: 2px solid #bfdbfe;
+    border-color: #245b91;
+}
+
+.admin-account-form-page .form-group .invalid-feedback {
+    display: block;
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.admin-account-form-page .form-group .is-invalid {
+    border: 1px solid #dc2626 !important;
+    outline: none;
+}
+
+.admin-account-form-page .error {
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.admin-account-form-page .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.admin-account-form-page .form-actions .btn {
+    display: inline-block;
+    padding: 11px 17px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin-account-form-page .form-actions .btn-secondary {
+    background: #e8eef5;
+    color: #17365d;
+}
+
+.admin-account-form-page .form-actions .btn-secondary:hover {
+    background: #dbe5ef;
+}
+
+@media (max-width: 600px) {
+    .admin-account-form-page .card {
+        padding: 18px;
+    }
+
+    .admin-account-form-page .form-actions {
+        flex-wrap: wrap;
+    }
+}
+
+

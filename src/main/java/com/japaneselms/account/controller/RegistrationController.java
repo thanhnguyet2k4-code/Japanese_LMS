@@ -1,4 +1,3 @@
-
 package com.japaneselms.account.controller;
 
 import com.japaneselms.account.dto.RegisterRequest;
@@ -18,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 public class RegistrationController {
@@ -85,10 +86,10 @@ public class RegistrationController {
     // S03: Danh sach hoc vien cho phe duyet
     @GetMapping("/admin/registrations")
     public String listPendingStudents(Model model) {
-        model.addAttribute(
-                "students",
-                registrationService.getPendingStudents()
-        );
+        List<User> pendingStudents = registrationService.getPendingStudents();
+        model.addAttribute("students", pendingStudents);
+        model.addAttribute("unreadNotificationsCount", pendingStudents != null ? pendingStudents.size() : 0);
+        model.addAttribute("currentTab", "registrations");
 
         return "admin/registrations";
     }

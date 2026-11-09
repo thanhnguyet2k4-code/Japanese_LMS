@@ -56,24 +56,32 @@ public class GradingController {
         return "grading/student-grades";
     }
 
-    @GetMapping("/admin/results")
+    @GetMapping({"/admin/results", "/admin/assessment-results"})
     public String adminResults(Authentication auth, @RequestParam(required = false) Long courseId,
                                @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("results", service.adminResults(auth.getName(), courseId, service.page(page, 10)));
         model.addAttribute("courseId", courseId);
         model.addAttribute("isAdmin", true);
+        model.addAttribute("currentTab", "assessment-results");
         return "grading/assessment-results";
     }
 
-    @GetMapping("/instructor/results")
+    @GetMapping({"/instructor/results", "/instructor/assessment-results"})
     public String instructorResults(Authentication auth, @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("results", service.instructorSubmissions(auth.getName(), "graded", service.page(page, 10)));
         model.addAttribute("courseId", null);
         model.addAttribute("isAdmin", false);
+        model.addAttribute("currentTab", "assessment-results");
         return "grading/assessment-results";
     }
 
-    @GetMapping({"/instructor/results/{id}", "/student/results/{id}", "/admin/results/{id}"})
+    @GetMapping({
+            "/instructor/results/{id}",
+            "/instructor/assessment-results/{id}",
+            "/student/results/{id}",
+            "/admin/results/{id}",
+            "/admin/assessment-results/{id}"
+    })
     public String resultDetail(Authentication auth, @PathVariable Long id, Model model) {
         model.addAttribute("submission", service.detail(auth.getName(), id));
         return "grading/result-detail";

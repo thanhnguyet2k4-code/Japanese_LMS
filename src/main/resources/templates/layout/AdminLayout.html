@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Japanese LMS - Quản trị</title>
-
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
 
     <th:block layout:fragment="head"></th:block>
 </head>
@@ -34,16 +34,16 @@
 
         <!-- Menu Sidebar: Trạng thái Active rõ ràng (Nguyên tắc 1 - Hierarchy) -->
         <nav class="sidebar-menu">
-            <!-- Mục Tổng quan (Active state với vạch accent bên trái) -->
-            <a th:href="@{/admin/home}"
-               th:classappend="${currentTab == 'home' or currentTab == null ? 'active' : ''}"
-               th:attr="aria-current=${currentTab == 'home' or currentTab == null ? 'page' : null}"
+            <!-- 1. Mục Tổng quan (Active state với vạch accent bên trái) -->
+            <a th:href="@{/admin}"
+               th:classappend="${currentTab == 'dashboard' or currentTab == 'home' or currentTab == null ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'dashboard' or currentTab == 'home' or currentTab == null ? 'page' : null}"
                class="sidebar-item">
                 <span class="sidebar-item-icon" aria-hidden="true">📊</span>
                 <span class="sidebar-item-text">Tổng quan</span>
             </a>
 
-            <!-- Mục Yêu cầu đăng ký (Kèm badge đếm số lượng) -->
+            <!-- 2. Mục Yêu cầu đăng ký (Kèm badge đếm số lượng) -->
             <a th:href="@{/admin/registrations}"
                th:classappend="${currentTab == 'registrations' ? 'active' : ''}"
                th:attr="aria-current=${currentTab == 'registrations' ? 'page' : null}"
@@ -55,7 +55,7 @@
                       th:text="${unreadNotificationsCount}">1</span>
             </a>
 
-            <!-- Mục Quản lý tài khoản -->
+            <!-- 3. Mục Quản lý tài khoản -->
             <a th:href="@{/admin/accounts}"
                th:classappend="${currentTab == 'accounts' ? 'active' : ''}"
                th:attr="aria-current=${currentTab == 'accounts' ? 'page' : null}"
@@ -64,7 +64,16 @@
                 <span class="sidebar-item-text">Quản lý tài khoản</span>
             </a>
 
-            <!-- Mục Hồ sơ cá nhân -->
+            <!-- 4. Mục Kết quả đánh giá (S22 - UC19) -->
+            <a th:href="@{/admin/assessment-results}"
+               th:classappend="${currentTab == 'assessment-results' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'assessment-results' ? 'page' : null}"
+               class="sidebar-item">
+                <span class="sidebar-item-icon" aria-hidden="true">📈</span>
+                <span class="sidebar-item-text">Kết quả đánh giá</span>
+            </a>
+
+            <!-- 5. Mục Hồ sơ cá nhân -->
             <a th:href="@{/profile}"
                th:classappend="${currentTab == 'profile' ? 'active' : ''}"
                th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}"

@@ -1,6 +1,7 @@
 
 package com.japaneselms.account.admin;
 
+import com.japaneselms.account.dto.AccountUpdateForm;
 import com.japaneselms.account.service.AccountService;
 import com.japaneselms.entity.User;
 import com.japaneselms.repository.UserRepository;
@@ -16,10 +17,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.japaneselms.account.dto.AccountCreateForm;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 public class AdminAccountController {
 
+    private static final Logger log =
+            LoggerFactory.getLogger(AdminAccountController.class);
     private final UserRepository userRepository;
     private final AccountService accountService;
 
@@ -97,6 +106,12 @@ public class AdminAccountController {
                 userRepository.countByRoleIgnoreCaseAndActiveTrue("ADMIN")
         );
 
+        model.addAttribute("currentTab", "accounts");
+        long pendingCount = userRepository.findByAccountStatus("PENDING").stream()
+                .filter(u -> "STUDENT".equalsIgnoreCase(u.getRole()))
+                .count();
+        model.addAttribute("unreadNotificationsCount", pendingCount);
+
         return "admin/accounts";
     }
 
@@ -104,41 +119,51 @@ public class AdminAccountController {
 
     @GetMapping("/admin/accounts/new")
     public String showCreateForm(Model model) {
-        model.addAttribute("account", new User());
+        model.addAttribute("account", new AccountCreateForm());
         model.addAttribute("isEdit", false);
+
+        addAdminLayoutAttributes(model);
 
         return "admin/account-form";
     }
 
     @PostMapping("/admin/accounts")
     public String createAccount(
-            @RequestParam String fullName,
-            @RequestParam String email,
-            @RequestParam String initialPassword,
-            @RequestParam String role,
-            @RequestParam(required = false) String phone,
+            @Valid @ModelAttribute("account") AccountCreateForm account,
+            BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        User formAccount = new User();
-        formAccount.setFullName(fullName);
-        formAccount.setEmail(email);
-        formAccount.setPhone(phone);
+        // Kiểm tra dữ liệu đầu vào
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("isEdit", false);
+            addAdminLayoutAttributes(model);
+            return "admin/account-form";
+        }
 
         try {
             accountService.createAccount(
-                    fullName, email, initialPassword, role, phone);
+                    account.getFullName(),
+                    account.getEmail(),
+                    account.getInitialPassword(),
+                    account.getRole(),
+                    account.getPhone()
+            );
 
-            redirectAttributes.addAttribute("success", "created");
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Tạo tài khoản thành công."
+            );
             return "redirect:/admin/accounts";
 
-        } catch (IllegalArgumentException ex) {
-            model.addAttribute("account", formAccount);
-            model.addAttribute("isEdit", false);
-            model.addAttribute("errorMessage", ex.getMessage());
+        }catch (IllegalArgumentException ex) {
+        model.addAttribute("isEdit", false);
+        model.addAttribute("errorMessage", ex.getMessage());
 
-            return "admin/account-form";
-        }
+        addAdminLayoutAttributes(model);
+
+        return "admin/account-form";
+    }
     }
 
     // ==================== CHINH SUA TAI KHOAN ====================
@@ -150,14 +175,23 @@ public class AdminAccountController {
             RedirectAttributes redirectAttributes) {
 
         return userRepository.findById(id)
-                .map(account -> {
-                    model.addAttribute("account", account);
+                .map(user -> {
+                    addAdminLayoutAttributes(model);
+                    AccountUpdateForm form = new AccountUpdateForm();
+
+                    form.setUserId(user.getUserId());
+                    form.setFullName(user.getFullName());
+                    form.setEmail(user.getEmail());
+                    form.setPhone(user.getPhone());
+
+                    model.addAttribute("account", form);
                     model.addAttribute("isEdit", true);
+
                     return "admin/account-form";
                 })
                 .orElseGet(() -> {
                     redirectAttributes.addFlashAttribute(
-                            "errorMessage", "Khong tim thay tai khoan.");
+                            "errorMessage", "Không tìm thấy tài khoản.");
                     return "redirect:/admin/accounts";
                 });
     }
@@ -165,33 +199,56 @@ public class AdminAccountController {
     @PostMapping("/admin/accounts/{id}/edit")
     public String updateAccount(
             @PathVariable Long id,
-            @RequestParam String fullName,
-            @RequestParam String email,
-            @RequestParam(required = false) String phone,
+            @Valid @ModelAttribute("account") AccountUpdateForm account,
+            BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        try {
-            accountService.updateAccount(id, fullName, email, phone);
+        account.setUserId(id);
 
-            redirectAttributes.addAttribute("success", "updated");
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("isEdit", true);
+            addAdminLayoutAttributes(model);
+            return "admin/account-form";
+        }
+
+        try {
+            accountService.updateAccount(
+                    id,
+                    account.getFullName(),
+                    account.getEmail(),
+                    account.getPhone()
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Cập nhật tài khoản thành công."
+            );
             return "redirect:/admin/accounts";
 
         } catch (IllegalArgumentException ex) {
-            User formAccount = userRepository.findById(id)
-                    .orElseGet(User::new);
+            log.warn("Khong the cap nhat tai khoan ID {}: {}", id, ex.getMessage());
 
-            formAccount.setFullName(fullName);
-            formAccount.setEmail(email);
-            formAccount.setPhone(phone);
-
-            model.addAttribute("account", formAccount);
             model.addAttribute("isEdit", true);
             model.addAttribute("errorMessage", ex.getMessage());
+            addAdminLayoutAttributes(model);
+
+            return "admin/account-form";
+
+        } catch (Exception ex) {
+            log.error("Loi khong mong doi khi cap nhat tai khoan ID {}", id, ex);
+
+            model.addAttribute("isEdit", true);
+            model.addAttribute(
+                    "errorMessage",
+                    "Đã xảy ra lỗi khi cập nhật tài khoản. Vui lòng thử lại."
+            );
+            addAdminLayoutAttributes(model);
 
             return "admin/account-form";
         }
     }
+
 
     // ==================== BAT / TAT TAI KHOAN ====================
 
@@ -206,8 +263,9 @@ public class AdminAccountController {
             redirectAttributes.addFlashAttribute(
                     "successMessage",
                     updatedAccount.isActive()
-                            ? "Da kich hoat tai khoan."
-                            : "Da vo hieu hoa tai khoan.");
+                            ? "Đã mở khóa tài khoản."
+                            : "Đã khóa tài khoản."
+            );
 
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute(
@@ -215,5 +273,15 @@ public class AdminAccountController {
         }
 
         return "redirect:/admin/accounts";
+    }
+    private void addAdminLayoutAttributes(Model model) {
+        model.addAttribute("currentTab", "accounts");
+
+        long pendingCount = userRepository.findByAccountStatus("PENDING")
+                .stream()
+                .filter(u -> "STUDENT".equalsIgnoreCase(u.getRole()))
+                .count();
+
+        model.addAttribute("unreadNotificationsCount", pendingCount);
     }
 }

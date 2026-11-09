@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý yêu cầu đăng ký - Japanese LMS</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
-<body class="admin-registrations-page">
+<body class="admin-layout-page admin-registrations-page">
 
-<header>
-    <h1>Japanese LMS | Quản trị</h1>
-    <a th:href="@{/admin}">← Về trang quản trị</a>
-</header>
-
-<main>
+<div layout:fragment="content">
     <div class="breadcrumb">
         <a th:href="@{/admin}">Trang quản trị</a>
         / Quản lý yêu cầu đăng ký
@@ -31,10 +26,12 @@
         </span>
     </section>
 
+    <!-- Thong bao thanh cong -->
     <div th:if="${successMessage}" class="message success"
          role="status" th:text="${successMessage}">
     </div>
 
+    <!-- Thong bao that bai -->
     <div th:if="${errorMessage}" class="message error"
          role="alert" th:text="${errorMessage}">
     </div>
@@ -150,219 +147,218 @@
             </div>
         </div>
     </section>
-</main>
 
-<!-- Dialog xem chi tiet -->
-<dialog id="detailDialog">
-    <h3>Chi tiết đăng ký Student</h3>
+    <!-- Dialog xem chi tiet -->
+    <dialog id="detailDialog">
+        <h3>Chi tiết đăng ký Student</h3>
 
-    <div class="detail-grid">
-        <div class="detail-label">Họ và tên</div>
-        <div class="detail-value" id="detailName">—</div>
+        <div class="detail-grid">
+            <div class="detail-label">Họ và tên</div>
+            <div class="detail-value" id="detailName">—</div>
 
-        <div class="detail-label">Email</div>
-        <div class="detail-value" id="detailEmail">—</div>
+            <div class="detail-label">Email</div>
+            <div class="detail-value" id="detailEmail">—</div>
 
-        <div class="detail-label">Số điện thoại</div>
-        <div class="detail-value" id="detailPhone">—</div>
+            <div class="detail-label">Số điện thoại</div>
+            <div class="detail-value" id="detailPhone">—</div>
 
-        <div class="detail-label">Ngày đăng ký</div>
-        <div class="detail-value" id="detailCreated">—</div>
-    </div>
-
-    <div class="dialog-actions">
-        <button type="button" class="btn-secondary"
-                onclick="document.getElementById('detailDialog').close()">
-            Đóng
-        </button>
-    </div>
-</dialog>
-
-<!-- Dialog xac nhan phe duyet -->
-<dialog id="approveDialog">
-    <h3>Xác nhận phê duyệt</h3>
-    <p>
-        Bạn có chắc chắn muốn phê duyệt tài khoản của
-        <strong id="approveStudentName"></strong> không?
-    </p>
-    <p>Sau khi phê duyệt, học viên có thể đăng nhập nếu tài khoản đang hoạt động.</p>
-    <form id="approveForm" method="post">
-        <!-- Ma CSRF bao ve yeu cau POST -->
-        <input type="hidden"
-               th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
-               th:value="${_csrf.token}">
-
-        <div class="dialog-actions">
-            <button type="button"
-                    class="btn-secondary"
-                    onclick="document.getElementById('approveDialog').close()">
-                Hủy
-            </button>
-
-            <button type="submit" class="btn-approve">
-                Xác nhận phê duyệt
-            </button>
+            <div class="detail-label">Ngày đăng ký</div>
+            <div class="detail-value" id="detailCreated">—</div>
         </div>
-    </form>
-</dialog>
-
-<!-- Dialog tu choi -->
-<dialog id="rejectDialog">
-    <h3>Xác nhận từ chối đăng ký</h3>
-    <p>
-        Bạn đang xử lý yêu cầu của
-        <strong id="rejectStudentName"></strong>.
-    </p>
-
-    <form id="rejectForm" method="post">
-        <label class="field-label" for="reviewNote">
-            Lý do từ chối (không bắt buộc)
-        </label>
-
-        <textarea id="reviewNote"
-                  name="reviewNote"
-                  rows="4"
-                  maxlength="500"
-                  placeholder="Nhập lý do từ chối nếu có..."></textarea>
 
         <div class="dialog-actions">
             <button type="button" class="btn-secondary"
-                    onclick="document.getElementById('rejectDialog').close()">
-                Hủy
-            </button>
-            <button type="submit" class="btn-reject">
-                Xác nhận từ chối
+                    onclick="document.getElementById('detailDialog').close()">
+                Đóng
             </button>
         </div>
-    </form>
-</dialog>
+    </dialog>
 
-<footer>
-    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
-</footer>
+    <!-- Dialog xac nhan phe duyet -->
+    <dialog id="approveDialog">
+        <h3>Xác nhận phê duyệt</h3>
+        <p>
+            Bạn có chắc chắn muốn phê duyệt tài khoản của
+            <strong id="approveStudentName"></strong> không?
+        </p>
+        <p>Sau khi phê duyệt, học viên có thể đăng nhập nếu tài khoản đang hoạt động.</p>
+        <form id="approveForm" method="post">
+            <input type="hidden"
+                   th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
 
-<script>
-    // Xem thong tin chi tiet
-    function showDetails(button) {
-        document.getElementById('detailName').textContent =
-            button.dataset.name || 'Chưa cung cấp';
+            <div class="dialog-actions">
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="document.getElementById('approveDialog').close()">
+                    Hủy
+                </button>
 
-        document.getElementById('detailEmail').textContent =
-            button.dataset.email || 'Chưa cung cấp';
+                <button type="submit" class="btn-approve">
+                    Xác nhận phê duyệt
+                </button>
+            </div>
+        </form>
+    </dialog>
 
-        document.getElementById('detailPhone').textContent =
-            button.dataset.phone || 'Chưa cung cấp';
+    <!-- Dialog tu choi -->
+    <dialog id="rejectDialog">
+        <h3>Xác nhận từ chối đăng ký</h3>
+        <p>
+            Bạn đang xử lý yêu cầu của
+            <strong id="rejectStudentName"></strong>.
+        </p>
 
-        const created = button.dataset.created;
-        document.getElementById('detailCreated').textContent =
-            created ? created.replace('T', ' ') : 'Không có dữ liệu';
+        <form id="rejectForm" method="post">
+            <input type="hidden"
+                   th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
 
-        document.getElementById('detailDialog').showModal();
-    }
+            <label class="field-label" for="reviewNote">
+                Lý do từ chối (không bắt buộc)
+            </label>
 
-    // Xac nhan tu choi
-    function showRejectDialog(button) {
-        const id = button.dataset.id;
+            <textarea id="reviewNote"
+                      name="reviewNote"
+                      rows="4"
+                      maxlength="500"
+                      placeholder="Nhập lý do từ chối nếu có..."></textarea>
 
-        document.getElementById('rejectStudentName').textContent =
-            button.dataset.name || '';
+            <div class="dialog-actions">
+                <button type="button" class="btn-secondary"
+                        onclick="document.getElementById('rejectDialog').close()">
+                    Hủy
+                </button>
+                <button type="submit" class="btn-reject">
+                    Xác nhận từ chối
+                </button>
+            </div>
+        </form>
+    </dialog>
 
-        document.getElementById('rejectForm').action =
-            '/admin/registrations/' + encodeURIComponent(id) + '/reject';
+    <script>
+        // Xem thong tin chi tiet
+        function showDetails(button) {
+            document.getElementById('detailName').textContent =
+                button.dataset.name || 'Chưa cung cấp';
 
-        document.getElementById('reviewNote').value = '';
-        document.getElementById('rejectDialog').showModal();
-    }
-    function showApproveDialog(button) {
-        const studentId = button.dataset.id;
-        const studentName = button.dataset.name;
+            document.getElementById('detailEmail').textContent =
+                button.dataset.email || 'Chưa cung cấp';
 
-        document.getElementById("approveStudentName").textContent =
-            studentName;
+            document.getElementById('detailPhone').textContent =
+                button.dataset.phone || 'Chưa cung cấp';
 
-        document.getElementById("approveForm").action =
-            "/admin/registrations/" + studentId + "/approve";
+            const created = button.dataset.created;
+            document.getElementById('detailCreated').textContent =
+                created ? created.replace('T', ' ') : 'Không có dữ liệu';
 
-        document.getElementById("approveDialog").showModal();
-    }
-
-    // Tim kiem va phan trang tren danh sach hien thi
-    const searchInput = document.getElementById('searchInput');
-    const pageSizeSelect = document.getElementById('pageSize');
-    const rows = Array.from(document.querySelectorAll('.student-row'));
-    const emptyMessage = document.getElementById('emptyMessage');
-    const pageInfo = document.getElementById('pageInfo');
-    const previousPage = document.getElementById('previousPage');
-    const nextPage = document.getElementById('nextPage');
-
-    let currentPage = 1;
-
-    function updateTable() {
-        const keyword = searchInput.value.trim().toLocaleLowerCase('vi');
-        const pageSize = Number(pageSizeSelect.value);
-
-        const filteredRows = rows.filter(row => {
-            const text = [
-                row.dataset.name,
-                row.dataset.email,
-                row.dataset.phone
-            ].join(' ').toLocaleLowerCase('vi');
-
-            return text.includes(keyword);
-        });
-
-        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-
-        if (currentPage > totalPages) {
-            currentPage = totalPages;
+            document.getElementById('detailDialog').showModal();
         }
 
-        rows.forEach(row => {
-            row.hidden = true;
-        });
+        // Xac nhan tu choi
+        function showRejectDialog(button) {
+            const id = button.dataset.id;
 
-        const start = (currentPage - 1) * pageSize;
-        const visibleRows = filteredRows.slice(start, start + pageSize);
+            document.getElementById('rejectStudentName').textContent =
+                button.dataset.name || '';
 
-        visibleRows.forEach((row, index) => {
-            row.hidden = false;
-            row.querySelector('.row-number').textContent = start + index + 1;
-        });
+            document.getElementById('rejectForm').action =
+                '/admin/registrations/' + encodeURIComponent(id) + '/reject';
 
-        emptyMessage.hidden = filteredRows.length !== 0;
-        pageInfo.textContent =
-            'Trang ' + currentPage + ' / ' + totalPages +
-            ' — ' + filteredRows.length + ' yêu cầu';
+            document.getElementById('reviewNote').value = '';
+            document.getElementById('rejectDialog').showModal();
+        }
 
-        previousPage.disabled = currentPage <= 1;
-        nextPage.disabled = currentPage >= totalPages;
-    }
+        function showApproveDialog(button) {
+            const studentId = button.dataset.id;
+            const studentName = button.dataset.name;
 
-    searchInput.addEventListener('input', () => {
-        currentPage = 1;
-        updateTable();
-    });
+            document.getElementById("approveStudentName").textContent =
+                studentName;
 
-    pageSizeSelect.addEventListener('change', () => {
-        currentPage = 1;
-        updateTable();
-    });
+            document.getElementById("approveForm").action =
+                "/admin/registrations/" + encodeURIComponent(studentId) + "/approve";
 
-    previousPage.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
+            document.getElementById("approveDialog").showModal();
+        }
+
+        // Tim kiem va phan trang tren danh sach hien thi
+        const searchInput = document.getElementById('searchInput');
+        const pageSizeSelect = document.getElementById('pageSize');
+        const rows = Array.from(document.querySelectorAll('.student-row'));
+        const emptyMessage = document.getElementById('emptyMessage');
+        const pageInfo = document.getElementById('pageInfo');
+        const previousPage = document.getElementById('previousPage');
+        const nextPage = document.getElementById('nextPage');
+
+        let currentPage = 1;
+
+        function updateTable() {
+            const keyword = searchInput.value.trim().toLocaleLowerCase('vi');
+            const pageSize = Number(pageSizeSelect.value);
+
+            const filteredRows = rows.filter(row => {
+                const text = [
+                    row.dataset.name,
+                    row.dataset.email,
+                    row.dataset.phone
+                ].join(' ').toLocaleLowerCase('vi');
+
+                return text.includes(keyword);
+            });
+
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            rows.forEach(row => {
+                row.hidden = true;
+            });
+
+            const start = (currentPage - 1) * pageSize;
+            const visibleRows = filteredRows.slice(start, start + pageSize);
+
+            visibleRows.forEach((row, index) => {
+                row.hidden = false;
+                row.querySelector('.row-number').textContent = start + index + 1;
+            });
+
+            emptyMessage.hidden = filteredRows.length !== 0;
+            pageInfo.textContent =
+                'Trang ' + currentPage + ' / ' + totalPages +
+                ' — ' + filteredRows.length + ' yêu cầu';
+
+            previousPage.disabled = currentPage <= 1;
+            nextPage.disabled = currentPage >= totalPages;
+        }
+
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
             updateTable();
-        }
-    });
+        });
 
-    nextPage.addEventListener('click', () => {
-        currentPage++;
+        pageSizeSelect.addEventListener('change', () => {
+            currentPage = 1;
+            updateTable();
+        });
+
+        previousPage.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updateTable();
+            }
+        });
+
+        nextPage.addEventListener('click', () => {
+            currentPage++;
+            updateTable();
+        });
+
         updateTable();
-    });
-
-    updateTable();
-</script>
+    </script>
+</div>
 
 </body>
 </html>
-

@@ -1,19 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Quản lý tài khoản - Japanese LMS</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
-<body class="admin-accounts-page">
-<header class="header">
-    <h1>Japanese LMS | Quản trị</h1>
-    <a th:href="@{/admin}">← Trang quản trị</a>
-</header>
+<body class="admin-layout-page admin-accounts-page">
 
-<main>
+<div layout:fragment="content">
     <div class="breadcrumb">
         <a th:href="@{/admin}">Trang quản trị</a>
         / Quản lý tài khoản người dùng
@@ -33,16 +29,55 @@
         </a>
     </section>
 
-    <!-- Thong bao thanh cong -->
-    <div class="message"
-         th:if="${successMessage != null}"
-         th:text="${successMessage}">
-    </div>
+    <!-- TOAST NOTIFICATION - RIÊNG CHỨC NĂNG QUẢN LÝ TÀI KHOẢN -->
+    <div class="account-toast-container"
+         aria-live="polite"
+         aria-atomic="false">
 
-    <!-- Thong bao that bai -->
-    <div class="message"
-         th:if="${errorMessage != null}"
-         th:text="${errorMessage}">
+        <!-- Thông báo thành công -->
+        <div class="account-toast account-toast-success"
+             th:if="${successMessage != null}"
+             role="status">
+
+            <span class="account-toast-icon" aria-hidden="true">✓</span>
+
+            <div class="account-toast-content">
+                <p class="account-toast-title">Thành công</p>
+                <p class="account-toast-message"
+                   th:text="${successMessage}">
+                    Thao tác thành công.
+                </p>
+            </div>
+
+            <button type="button"
+                    class="account-toast-close"
+                    aria-label="Đóng thông báo">
+                &times;
+            </button>
+        </div>
+
+        <!-- Thông báo thất bại -->
+        <div class="account-toast account-toast-error"
+             th:if="${errorMessage != null}"
+             role="alert">
+
+            <span class="account-toast-icon" aria-hidden="true">!</span>
+
+            <div class="account-toast-content">
+                <p class="account-toast-title">Thao tác thất bại</p>
+                <p class="account-toast-message"
+                   th:text="${errorMessage}">
+                    Đã xảy ra lỗi.
+                </p>
+            </div>
+
+            <button type="button"
+                    class="account-toast-close"
+                    aria-label="Đóng thông báo">
+                &times;
+            </button>
+        </div>
+
     </div>
 
     <div class="card">
@@ -258,10 +293,41 @@
             </div>
         </div>
     </section>
-</main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toasts = document.querySelectorAll(
+                '.account-toast-container .account-toast'
+            );
 
-<footer>
-    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
-</footer>
+            toasts.forEach(function (toast) {
+                let hideTimer;
+
+                function closeToast() {
+                    if (toast.classList.contains('account-toast-hide')) {
+                        return;
+                    }
+
+                    clearTimeout(hideTimer);
+                    toast.classList.add('account-toast-hide');
+
+                    toast.addEventListener('animationend', function () {
+                        toast.remove();
+                    }, { once: true });
+                }
+
+                const closeButton = toast.querySelector(
+                    '.account-toast-close'
+                );
+
+                if (closeButton) {
+                    closeButton.addEventListener('click', closeToast);
+                }
+
+                hideTimer = setTimeout(closeToast, 5000);
+            });
+        });
+    </script>
+</div>
+
 </body>
 </html>

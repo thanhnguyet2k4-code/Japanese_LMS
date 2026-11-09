@@ -76,6 +76,24 @@ public class SecurityConfig {
                                 "/my-courses/**"
                         ).hasRole("STUDENT")
 
+                        // MF-05: S22 & S23 - Specific rules for Admin assessment results (GET only)
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/admin/assessment-results",
+                                "/admin/assessment-results/**",
+                                "/admin/results",
+                                "/admin/results/**"
+                        ).hasRole("ADMIN")
+
+                        // MF-05: S22 & S23 - Specific rules for Instructor assessment results (GET only)
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/instructor/assessment-results",
+                                "/instructor/assessment-results/**",
+                                "/instructor/results",
+                                "/instructor/results/**"
+                        ).hasRole("INSTRUCTOR")
+
                         // Admin pages
                         .requestMatchers(
                                 "/admin",

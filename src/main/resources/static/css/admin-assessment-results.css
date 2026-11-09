@@ -1,0 +1,451 @@
+/* ==========================================================================
+   ADMIN ASSESSMENT RESULTS CSS - MODULE MF-05 / S22 INTEGRATION
+   Scoped strictly under .admin-assessment-results to preserve global styles.
+   ========================================================================== */
+
+/* 1. Main Container & Inner Layout */
+.admin-assessment-results {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #f8fafc;
+    min-height: 100%;
+}
+
+.admin-assessment-results .results-inner {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 3rem;
+    box-sizing: border-box;
+}
+
+/* 2. Header Section */
+.admin-assessment-results .results-header-section {
+    margin-bottom: 1.75rem;
+}
+
+.admin-assessment-results .sub-header-title {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+
+.admin-assessment-results .page-main-title {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.5rem, 2.2vw, 2.15rem);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+}
+
+.admin-assessment-results .welcome-text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+/* 3. Filter Card (Dành cho Admin) */
+.admin-assessment-results .filter-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    box-sizing: border-box;
+}
+
+.admin-assessment-results .filter-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-assessment-results .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-assessment-results .filter-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.admin-assessment-results .filter-input {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    min-width: 180px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.admin-assessment-results .filter-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    background-color: #ffffff;
+}
+
+.admin-assessment-results .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-assessment-results .btn-filter-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1.15rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #2563eb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.admin-assessment-results .btn-filter-submit:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.admin-assessment-results .btn-filter-clear {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-assessment-results .btn-filter-clear:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+/* 4. Table Card & Content */
+.admin-assessment-results .results-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    box-sizing: border-box;
+}
+
+.admin-assessment-results .table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 1rem;
+}
+
+.admin-assessment-results .table-card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.015em;
+}
+
+.admin-assessment-results .table-count-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #eff6ff;
+    color: #2563eb;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.admin-assessment-results .results-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
+.admin-assessment-results .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+    text-align: left;
+}
+
+.admin-assessment-results .results-table th {
+    padding: 0.85rem 1rem;
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.admin-assessment-results .results-table th.th-actions {
+    text-align: right;
+    padding-right: 1.25rem;
+}
+
+.admin-assessment-results .results-table td {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.admin-assessment-results .results-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-assessment-results .results-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+.admin-assessment-results .student-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.admin-assessment-results .student-name {
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.admin-assessment-results .student-email {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.admin-assessment-results .course-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.admin-assessment-results .assignment-title {
+    color: #475569;
+}
+
+/* 5. Grade Badges */
+.admin-assessment-results .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
+    font-size: 0.825rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.admin-assessment-results .grade-scored {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.admin-assessment-results .grade-scored strong {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #047857;
+    margin-right: 0.2rem;
+}
+
+.admin-assessment-results .grade-pending {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.admin-assessment-results .td-actions {
+    text-align: right;
+    white-space: nowrap;
+    padding-right: 1.25rem;
+}
+
+.admin-assessment-results .btn-detail-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #2563eb;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 7px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-assessment-results .btn-detail-action:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+/* 6. Empty State */
+.admin-assessment-results .empty-results-cell {
+    padding: 3rem 1.5rem !important;
+    text-align: center;
+}
+
+.admin-assessment-results .empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-assessment-results .empty-icon {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.7;
+}
+
+.admin-assessment-results .empty-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.35rem;
+}
+
+.admin-assessment-results .empty-desc {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+/* 7. Pagination */
+.admin-assessment-results .pagination-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.admin-assessment-results .pagination-info {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.admin-assessment-results .pagination-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-assessment-results .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #334155;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-assessment-results .pagination-btn:hover {
+    background-color: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+
+/* ==========================================================================
+   8. RESPONSIVE BREAKPOINTS (ALL SELECTORS SCOPED UNDER .admin-assessment-results)
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .admin-assessment-results .results-inner {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .admin-assessment-results .results-table-card {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-assessment-results .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-assessment-results .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-assessment-results .filter-input {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .admin-assessment-results .filter-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .admin-assessment-results .pagination-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 390px) {
+    .admin-assessment-results .results-inner {
+        padding: 1rem 0.75rem 1.5rem;
+    }
+
+    .admin-assessment-results .page-main-title {
+        font-size: 1.35rem;
+    }
+
+    .admin-assessment-results .btn-filter-submit,
+    .admin-assessment-results .btn-filter-clear {
+        flex: 1;
+        justify-content: center;
+    }
+}

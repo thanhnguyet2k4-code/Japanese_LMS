@@ -1,19 +1,18 @@
+
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Thông tin tài khoản - Japanese LMS</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
-<body class="admin-account-form-page">
-<header>
-    <h1>Japanese LMS | Quản trị</h1>
-    <a th:href="@{/admin/accounts}">← Danh sách tài khoản</a>
-</header>
+<body>
 
-<main>
+<main layout:fragment="content" class="admin-account-form-page">
+
     <div class="breadcrumb">
         <a th:href="@{/admin}">Trang quản trị</a>
         /
@@ -22,6 +21,7 @@
     </div>
 
     <section class="card">
+
         <h2 th:text="${isEdit} ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'">
             Tạo tài khoản mới
         </h2>
@@ -33,94 +33,113 @@
             Nhập thông tin tài khoản.
         </p>
 
-        <div class="error" th:if="${errorMessage != null}"
+        <!-- Thông báo lỗi nghiệp vụ -->
+        <div class="error"
+             th:if="${errorMessage != null}"
              th:text="${errorMessage}">
             Đã xảy ra lỗi.
         </div>
 
         <form method="post"
+              novalidate
               th:action="${isEdit}
                   ? @{/admin/accounts/{id}/edit(id=${account.userId})}
                   : @{/admin/accounts}"
               th:object="${account}">
 
-            <input type="hidden"
-                   th:if="${isEdit}"
-                   name="userId"
-                   th:value="${account.userId}">
+            <div class="form-group">
+                <label for="fullName">Họ và tên</label>
 
-            <div class="form-grid">
-                <div class="field full-width">
-                    <label for="fullName">Họ và tên *</label>
-                    <input id="fullName"
-                           type="text"
-                           name="fullName"
-                           maxlength="100"
-                           required
-                           th:value="${account.fullName}"
-                           placeholder="Nhập họ và tên">
-                </div>
+                <input type="text"
+                       id="fullName"
+                       th:field="*{fullName}"
+                       maxlength="100"
+                       th:classappend="${#fields.hasErrors('fullName')} ? ' is-invalid'">
 
-                <div class="field full-width">
-                    <label for="email">Email *</label>
-                    <input id="email"
-                           type="email"
-                           name="email"
-                           maxlength="150"
-                           required
-                           th:value="${account.email}"
-                           placeholder="example@email.com">
-                </div>
-
-                <div class="field"
-                     th:unless="${isEdit}">
-                    <label for="initialPassword">Mật khẩu ban đầu *</label>
-                    <input id="initialPassword"
-                           type="password"
-                           name="initialPassword"
-                           minlength="8"
-                           required
-                           autocomplete="new-password"
-                           placeholder="Ít nhất 8 ký tự">
-                    <small>Mật khẩu sẽ được mã hóa trước khi lưu.</small>
-                </div>
-
-                <div class="field"
-                     th:unless="${isEdit}">
-                    <label for="role">Vai trò *</label>
-                    <select id="role" name="role" required>
-                        <option value="">-- Chọn vai trò --</option>
-                        <option value="INSTRUCTOR">Giảng viên</option>
-                        <option value="ADMIN">Quản trị viên</option>
-                    </select>
-                </div>
-
-                <div class="field full-width">
-                    <label for="phone">Số điện thoại</label>
-                    <input id="phone"
-                           type="tel"
-                           name="phone"
-                           maxlength="20"
-                           th:value="${account.phone}"
-                           placeholder="Nhập số điện thoại">
-                </div>
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('fullName')}"
+                       th:errors="*{fullName}"></small>
             </div>
 
-            <div class="actions">
+            <div class="form-group">
+                <label for="email">Email</label>
+
+                <input type="email"
+                       id="email"
+                       th:field="*{email}"
+                       maxlength="150"
+                       th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('email')}"
+                       th:errors="*{email}"></small>
+            </div>
+
+            <div class="form-group" th:if="${!isEdit}">
+                <label for="initialPassword">Mật khẩu ban đầu</label>
+
+                <input type="password"
+                       id="initialPassword"
+                       th:field="*{initialPassword}"
+                       minlength="8"
+                       th:classappend="${#fields.hasErrors('initialPassword')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('initialPassword')}"
+                       th:errors="*{initialPassword}"></small>
+            </div>
+
+            <div class="form-group" th:if="${!isEdit}">
+                <label for="role">Vai trò</label>
+
+                <select id="role"
+                        th:field="*{role}"
+                        th:classappend="${#fields.hasErrors('role')} ? ' is-invalid'">
+
+                    <option value="">-- Chọn vai trò --</option>
+                    <option value="INSTRUCTOR">Giảng viên</option>
+                    <option value="ADMIN">Quản trị viên</option>
+                </select>
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('role')}"
+                       th:errors="*{role}"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Số điện thoại</label>
+
+                <input type="text"
+                       id="phone"
+                       th:field="*{phone}"
+                       maxlength="20"
+                       th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'">
+
+                <small class="invalid-feedback"
+                       th:if="${#fields.hasErrors('phone')}"
+                       th:errors="*{phone}"></small>
+            </div>
+
+            <div class="form-actions">
+
                 <a th:href="@{/admin/accounts}"
-                   class="button secondary">Hủy</a>
+                   class="btn btn-secondary">
+                    Hủy
+                </a>
 
-                <button type="submit" class="button primary"
+                <button type="submit"
+                        class="btn btn-primary"
                         th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo tài khoản'">
-                    Tạo tài khoản
+                    Lưu
                 </button>
+
             </div>
+
         </form>
+
     </section>
+
 </main>
 
-<footer>
-    Japanese LMS — Hệ thống quản lý học tập tiếng Nhật
-</footer>
 </body>
 </html>
