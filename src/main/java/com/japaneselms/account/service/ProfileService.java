@@ -31,13 +31,13 @@ public class ProfileService {
                 || !authentication.isAuthenticated()
                 || authentication.getName() == null) {
             throw new IllegalArgumentException(
-                    "Khong tim thay thong tin nguoi dang nhap.");
+                    "Không tìm thấy thông tin người đăng nhập.");
         }
 
         return userRepository.findByEmailIgnoreCase(
                         authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Khong tim thay tai khoan."));
+                        "Không tìm thấy tài khoản."));
     }
 
     // Xem ho so ca nhan.
@@ -53,17 +53,17 @@ public class ProfileService {
 
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException(
-                    "Ho ten khong duoc de trong.");
+                    "Họ tên không được để trống.");
         }
 
         if (fullName.trim().length() > 100) {
             throw new IllegalArgumentException(
-                    "Ho ten khong duoc vuot qua 100 ky tu.");
+                    "Họ tên không được vượt quá 100 ký tự.");
         }
 
         if (phone != null && phone.trim().length() > 20) {
             throw new IllegalArgumentException(
-                    "So dien thoai khong duoc vuot qua 20 ky tu.");
+                    "Số điện thoại không được vượt quá 20 ký tự.");
         }
 
         user.setFullName(fullName.trim());
@@ -84,30 +84,30 @@ public class ProfileService {
 
         if (currentPassword == null || currentPassword.isBlank()) {
             throw new IllegalArgumentException(
-                    "Vui long nhap mat khau hien tai.");
+                    "Vui lòng nhập mật khẩu hiện tại.");
         }
 
         if (!passwordEncoder.matches(
                 currentPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException(
-                    "Mat khau hien tai khong chinh xac.");
+                    "Mật khẩu hiện tại không chính xác.");
         }
 
         if (newPassword == null || newPassword.length() < 8) {
             throw new IllegalArgumentException(
-                    "Mat khau moi phai co it nhat 8 ky tu.");
+                    "Mật khẩu mới phải có ít nhất 8 ký tự.");
         }
 
         if (confirmPassword == null
                 || !newPassword.equals(confirmPassword)) {
             throw new IllegalArgumentException(
-                    "Xac nhan mat khau khong khop.");
+                    "Xác nhận mật khẩu không khớp.");
         }
 
         if (passwordEncoder.matches(
                 newPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException(
-                    "Mat khau moi phai khac mat khau hien tai.");
+                    "Mật khẩu mới phải khác mật khẩu hiện tại.");
         }
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));

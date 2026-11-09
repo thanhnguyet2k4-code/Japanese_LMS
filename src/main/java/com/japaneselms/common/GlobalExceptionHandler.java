@@ -118,7 +118,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public String handleException(Exception ex, Model model) {
 
-        logger.error("Da xay ra loi khi xu ly yeu cau.", ex);
+        logger.error("Đã xảy ra lỗi khi xử lý yêu cầu.", ex);
 
         String errorMessage =
                 "Hệ thống gặp sự cố. Vui lòng thử lại sau.";

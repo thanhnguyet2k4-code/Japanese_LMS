@@ -28,7 +28,7 @@ public class AccountService {
     // Chuan hoa email de tranh tao tai khoan trung.
     private String normalizeEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email khong duoc de trong.");
+            throw new IllegalArgumentException("Email không được để trống.");
         }
         return email.trim().toLowerCase(Locale.ROOT);
     }
@@ -43,18 +43,18 @@ public class AccountService {
             String phone) {
 
         if (fullName == null || fullName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ho ten khong duoc de trong.");
+            throw new IllegalArgumentException("Họ tên không được để trống.");
         }
 
         if (initialPassword == null || initialPassword.length() < 8) {
             throw new IllegalArgumentException(
-                    "Mat khau ban dau phai co it nhat 8 ky tu.");
+                    "Mật khẩu ban đầu phải có ít nhất 8 ký tự.");
         }
 
         String normalizedEmail = normalizeEmail(email);
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new IllegalArgumentException("Email da ton tai.");
+            throw new IllegalArgumentException("Email đã tồn tại.");
         }
 
         String normalizedRole = role == null
@@ -64,7 +64,7 @@ public class AccountService {
         if (!normalizedRole.equals("INSTRUCTOR")
                 && !normalizedRole.equals("ADMIN")) {
             throw new IllegalArgumentException(
-                    "Chi duoc tao tai khoan INSTRUCTOR hoac ADMIN.");
+                    "Chỉ được tạo tài khoản INSTRUCTOR hoặc ADMIN.");
         }
 
         User user = new User();
@@ -93,7 +93,7 @@ public class AccountService {
         User user = findAccount(userId);
 
         if (fullName == null || fullName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ho ten khong duoc de trong.");
+            throw new IllegalArgumentException("Họ tên không được để trống.");
         }
 
         String normalizedEmail = normalizeEmail(email);
@@ -103,7 +103,7 @@ public class AccountService {
 
         if (existingUser.isPresent()
                 && !existingUser.get().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("Email da duoc tai khoan khac su dung.");
+            throw new IllegalArgumentException("Email đã được tài khoản khác sử dụng.");
         }
 
         user.setFullName(fullName.trim());
@@ -123,7 +123,7 @@ public class AccountService {
         // Khong cho phep Admin tu vo hieu hoa tai khoan hien tai.
         if (user.isActive() && isCurrentUser(user)) {
             throw new IllegalArgumentException(
-                    "Ban khong the vo hieu hoa tai khoan cua chinh minh.");
+                    "Bạn không thể vô hiệu hóa tài khoản của chính mình.");
         }
 
         // Khong cho phep vo hieu hoa Admin dang hoat dong cuoi cung.
@@ -131,7 +131,7 @@ public class AccountService {
                 && isAdmin(user)
                 && userRepository.countByRoleIgnoreCaseAndActiveTrue("ADMIN") <= 1) {
             throw new IllegalArgumentException(
-                    "Khong the vo hieu hoa Admin dang hoat dong cuoi cung.");
+                    "Không thể vô hiệu hóa Admin đang hoạt động cuối cùng.");
         }
 
         user.setActive(!user.isActive());
@@ -142,12 +142,12 @@ public class AccountService {
 
     private User findAccount(Long userId) {
         if (userId == null) {
-            throw new IllegalArgumentException("Ma tai khoan khong hop le.");
+            throw new IllegalArgumentException("Mã tài khoản không hợp lệ.");
         }
 
         return userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Khong tim thay tai khoan."));
+                        new IllegalArgumentException("Không tìm thấy tài khoản."));
     }
 
     private boolean isCurrentUser(User user) {

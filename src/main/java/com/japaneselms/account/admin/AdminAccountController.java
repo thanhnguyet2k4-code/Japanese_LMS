@@ -227,7 +227,7 @@ public class AdminAccountController {
             return "redirect:/admin/accounts";
 
         } catch (IllegalArgumentException ex) {
-            log.warn("Khong the cap nhat tai khoan ID {}: {}", id, ex.getMessage());
+            log.warn("Không thể cập nhật tài khoản ID {}: {}", id, ex.getMessage());
 
             model.addAttribute("isEdit", true);
             model.addAttribute("errorMessage", ex.getMessage());
@@ -236,7 +236,7 @@ public class AdminAccountController {
             return "admin/account-form";
 
         } catch (Exception ex) {
-            log.error("Loi khong mong doi khi cap nhat tai khoan ID {}", id, ex);
+            log.error("Lỗi không mong đợi khi cập nhật tài khoản ID {}", id, ex);
 
             model.addAttribute("isEdit", true);
             model.addAttribute(

@@ -14,16 +14,12 @@
         <p>Chọn khóa học để quản lý bài học và tài liệu học tập.</p>
     </header>
 
-    <div class="lesson-toolbar">
-        <a class="btn btn-primary" th:href="@{/instructor/courses/new}">+ Thêm khóa học</a>
-    </div>
-
     <div class="message success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
     <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
 
     <div class="empty-state-box" th:if="${courses == null or #lists.isEmpty(courses)}">
         <strong>Chưa có khóa học</strong>
-        <p>Bấm "Thêm khóa học" để tạo khóa học đầu tiên.</p>
+        <p>Hãy tạo khóa học ở mục <a th:href="@{/instructor/courses}">Quản lý khóa học</a> trước khi thêm bài học.</p>
     </div>
 
     <div class="lesson-card-grid" th:if="${courses != null and !#lists.isEmpty(courses)}">
@@ -45,17 +41,6 @@
                    th:href="@{/instructor/courses/{courseId}/assignments(courseId=${course.courseId})}">
                     Bài tập
                 </a>
-                <a class="btn btn-outline"
-                   th:href="@{/instructor/courses/{courseId}/edit(courseId=${course.courseId})}">
-                    Sửa khóa học
-                </a>
-                <form th:action="@{/instructor/courses/{courseId}/delete(courseId=${course.courseId}, from='lessons')}" method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('Xóa vĩnh viễn khóa học này cùng toàn bộ bài học, tài liệu, tiến độ và danh sách học viên? Hành động không thể hoàn tác.');">
-                        Xóa khóa học
-                    </button>
-                </form>
             </div>
         </article>
     </div>

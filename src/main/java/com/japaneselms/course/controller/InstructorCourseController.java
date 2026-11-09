@@ -119,7 +119,7 @@ public class InstructorCourseController {
             } catch (IllegalArgumentException ex) {
                 redirectAttributes.addFlashAttribute(
                         "errorMessage",
-                        "Khoa hoc da duoc tao nhung khong the cap nhat anh bia: "
+                        "Khóa học đã được tạo nhưng không thể cập nhật ảnh bìa: "
                                 + ex.getMessage());
 
                 return "redirect:/instructor/courses";
@@ -189,7 +189,7 @@ public class InstructorCourseController {
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute(
                     "errorMessage",
-                    "Thong tin khoa hoc da duoc cap nhat nhung anh bia khong hop le: "
+                    "Thông tin khóa học đã được cập nhật nhưng ảnh bìa không hợp lệ: "
                             + ex.getMessage());
 
             return "redirect:/instructor/courses";

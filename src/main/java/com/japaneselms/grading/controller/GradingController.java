@@ -3,6 +3,8 @@ package com.japaneselms.grading.controller;
 import com.japaneselms.entity.Submission;
 import com.japaneselms.grading.dto.GradeForm;
 import com.japaneselms.grading.service.GradingService;
+import com.japaneselms.repository.SubmissionRepository;
+import java.util.List;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
@@ -15,7 +17,42 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class GradingController {
     private final GradingService service;
-    public GradingController(GradingService service) { this.service = service; }
+    private final SubmissionRepository submissionRepository;
+
+    public GradingController(GradingService service, SubmissionRepository submissionRepository) {
+        this.service = service;
+        this.submissionRepository = submissionRepository;
+    }
+
+    // Dữ liệu cho thanh chuyển nhanh giữa các bài nộp cùng bài tập
+    private void addNavigation(Model model, Submission submission) {
+        List<Submission> all = submissionRepository.findByAssignment_AssignmentIdOrderBySubmittedAtAsc(
+                submission.getAssignment().getAssignmentId());
+        int index = 0;
+        Long prevId = null, nextId = null;
+        String prevName = null, nextName = null;
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getSubmissionId().equals(submission.getSubmissionId())) {
+                index = i;
+                if (i > 0) {
+                    prevId = all.get(i - 1).getSubmissionId();
+                    prevName = all.get(i - 1).getStudent().getFullName();
+                }
+                if (i < all.size() - 1) {
+                    nextId = all.get(i + 1).getSubmissionId();
+                    nextName = all.get(i + 1).getStudent().getFullName();
+                }
+                break;
+            }
+        }
+        model.addAttribute("allSubmissions", all);
+        model.addAttribute("currentIndex", index);
+        model.addAttribute("totalSubmissions", all.size());
+        model.addAttribute("prevId", prevId);
+        model.addAttribute("nextId", nextId);
+        model.addAttribute("prevStudentName", prevName);
+        model.addAttribute("nextStudentName", nextName);
+    }
 
     @GetMapping("/instructor/grading")
     public String gradingList(Authentication auth, @RequestParam(defaultValue = "all") String status,
@@ -34,6 +71,7 @@ public class GradingController {
         form.setFeedback(submission.getFeedback());
         model.addAttribute("submission", submission);
         model.addAttribute("gradeForm", form);
+        addNavigation(model, submission);
         return "grading/grade-form";
     }
 
@@ -42,7 +80,9 @@ public class GradingController {
                        @Valid @ModelAttribute("gradeForm") GradeForm form, BindingResult errors,
                        Model model, RedirectAttributes redirect) {
         if (errors.hasErrors()) {
-            model.addAttribute("submission", service.gradingDetail(auth.getName(), id));
+            Submission current = service.gradingDetail(auth.getName(), id);
+            model.addAttribute("submission", current);
+            addNavigation(model, current);
             return "grading/grade-form";
         }
         service.saveGrade(auth.getName(), id, form);
