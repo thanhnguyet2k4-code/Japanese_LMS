@@ -1,6 +1,6 @@
-
 package com.japaneselms.course.controller;
 
+import com.japaneselms.common.ListPaging;
 import com.japaneselms.course.dto.CourseForm;
 import com.japaneselms.course.dto.CourseLevel;
 import com.japaneselms.course.dto.CourseSummaryDto;
@@ -49,24 +49,64 @@ public class InstructorCourseController {
 
     @GetMapping
     public String list(
-            @PageableDefault(
-                    size = 10,
-                    sort = "createdAt",
-                    direction = Sort.Direction.DESC
-            ) Pageable pageable,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String page,
             Authentication authentication,
             Model model) {
 
         Long instructorId = AuthUtils.requireUserId(authentication);
 
-        Page<CourseSummaryDto> courses =
-                instructorCourseService.getMyCourses(instructorId, pageable);
+        // Nạp toàn bộ khóa học của giảng viên (mỗi lần 50) rồi lọc / sắp xếp / phân trang
+        java.util.List<CourseSummaryDto> all = new java.util.ArrayList<>();
+        int i = 0;
+        Page<CourseSummaryDto> chunk;
+        do {
+            chunk = instructorCourseService.getMyCourses(instructorId,
+                    org.springframework.data.domain.PageRequest.of(i++, 50,
+                            Sort.by(Sort.Direction.DESC, "createdAt")));
+            all.addAll(chunk.getContent());
+        } while (chunk.hasNext());
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        String normalizedLevel = CourseLevel.normalize(level);
+        String normalizedStatus = "ACTIVE".equalsIgnoreCase(status) ? "ACTIVE"
+                : "INACTIVE".equalsIgnoreCase(status) ? "INACTIVE" : "";
+        String normalizedSort = ListPaging.normalizeSort(sort, "createdAt,desc",
+                "createdAt,desc", "createdAt,asc", "courseName,asc", "courseName,desc");
+
+        java.util.List<CourseSummaryDto> filtered = new java.util.ArrayList<>();
+        for (CourseSummaryDto c : all) {
+            if (!normalizedLevel.isEmpty() && !normalizedLevel.equalsIgnoreCase(c.jlptLevel())) {
+                continue;
+            }
+            if (!normalizedStatus.isEmpty() && !normalizedStatus.equalsIgnoreCase(c.courseStatus())) {
+                continue;
+            }
+            if (!ListPaging.containsKeyword(c.courseName(), normalizedKeyword)) {
+                continue;
+            }
+            filtered.add(c);
+        }
+        ListPaging.sortBy(filtered, normalizedSort,
+                CourseSummaryDto::courseName, CourseSummaryDto::createdAt);
+
+        Page<CourseSummaryDto> courses = ListPaging.paginate(filtered, ListPaging.parsePage(page), 10);
 
         model.addAttribute("mode", "list");
         model.addAttribute("courses", courses);
         model.addAttribute("currentPage", courses.getNumber());
         model.addAttribute("totalPages", courses.getTotalPages());
         model.addAttribute("totalElements", courses.getTotalElements());
+        model.addAttribute("pageSize", 10);
+        model.addAttribute("totalAll", all.size());
+        model.addAttribute("keyword", normalizedKeyword);
+        model.addAttribute("level", normalizedLevel);
+        model.addAttribute("status", normalizedStatus);
+        model.addAttribute("sort", normalizedSort);
+        model.addAttribute("levels", CourseLevel.values());
         model.addAttribute("currentTab", "instructor-courses");
 
         return VIEW;
@@ -122,14 +162,67 @@ public class InstructorCourseController {
                         "Khóa học đã được tạo nhưng không thể cập nhật ảnh bìa: "
                                 + ex.getMessage());
 
-                return "redirect:/instructor/courses";
+                return "redirect:/instructor/courses/waiting";
             }
         }
 
         redirectAttributes.addFlashAttribute(
                 "successMessage", "Đã tạo khóa học mới.");
 
-        return "redirect:/instructor/courses";
+        // Khoa hoc moi con trong -> sang trang cho, chi co nut Quan ly bai hoc.
+        return "redirect:/instructor/courses/waiting";
+    }
+
+    // ==================== KHOA HOC CHO (chua co bai hoc) ====================
+
+    @GetMapping("/waiting")
+    public String waitingList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String page,
+            Authentication authentication,
+            Model model) {
+
+        Long instructorId = AuthUtils.requireUserId(authentication);
+
+        java.util.List<CourseSummaryDto> all =
+                instructorCourseService.getWaitingCourses(instructorId);
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        String normalizedLevel = CourseLevel.normalize(level);
+        String normalizedSort = ListPaging.normalizeSort(sort, "createdAt,desc",
+                "createdAt,desc", "createdAt,asc", "courseName,asc", "courseName,desc");
+
+        java.util.List<CourseSummaryDto> filtered = new java.util.ArrayList<>();
+        for (CourseSummaryDto c : all) {
+            if (!normalizedLevel.isEmpty() && !normalizedLevel.equalsIgnoreCase(c.jlptLevel())) {
+                continue;
+            }
+            if (!ListPaging.containsKeyword(c.courseName(), normalizedKeyword)) {
+                continue;
+            }
+            filtered.add(c);
+        }
+        ListPaging.sortBy(filtered, normalizedSort,
+                CourseSummaryDto::courseName, CourseSummaryDto::createdAt);
+
+        Page<CourseSummaryDto> pageData = ListPaging.paginate(
+                filtered, ListPaging.parsePage(page), 10);
+
+        model.addAttribute("courses", pageData.getContent());
+        model.addAttribute("totalAll", all.size());
+        model.addAttribute("currentPage", pageData.getNumber());
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("totalElements", pageData.getTotalElements());
+        model.addAttribute("pageSize", 10);
+        model.addAttribute("keyword", normalizedKeyword);
+        model.addAttribute("level", normalizedLevel);
+        model.addAttribute("sort", normalizedSort);
+        model.addAttribute("levels", CourseLevel.values());
+        model.addAttribute("currentTab", "waiting-courses");
+
+        return "instructor/course-waiting";
     }
 
     // ==================== SUA KHOA HOC ====================
@@ -198,7 +291,9 @@ public class InstructorCourseController {
         redirectAttributes.addFlashAttribute(
                 "successMessage", "Đã cập nhật khóa học.");
 
-        return "redirect:/instructor/courses";
+        return instructorCourseService.isWaiting(id, instructorId)
+                ? "redirect:/instructor/courses/waiting"
+                : "redirect:/instructor/courses";
     }
 
     // ==================== XOA KHOA HOC (chuc nang cua Thang) ====================
@@ -217,7 +312,9 @@ public class InstructorCourseController {
         // Chi chap nhan gia tri co dinh de tranh open redirect.
         String target = "lessons".equals(from)
                 ? "redirect:/instructor/lesson-courses"
-                : "redirect:/instructor/courses";
+                : "waiting".equals(from)
+                  ? "redirect:/instructor/courses/waiting"
+                  : "redirect:/instructor/courses";
 
         try {
             courseManagementService.deleteCourse(currentUser, id);

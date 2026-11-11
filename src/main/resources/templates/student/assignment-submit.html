@@ -1,36 +1,23 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${'Nộp bài: ' + assignment.title + ' — S17'}">S17 — Nộp bài tập</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
-    <style>
-        :root {
-            --ink: #172b40;
-            --muted: #657789;
-            --line: #e2e9ee;
-            --accent: #087f77;
-            --accent-hover: #066c66;
-            --bg-page: #f4f8f9;
-        }
-        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
-        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
-        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 11px 26px; border: none; transition: all .2s; }
-        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(8,127,119,0.25); }
-        .form-label { font-weight: 700; color: #344b5c; font-size: 0.92rem; }
-        .dropzone-box { border: 2px dashed #bfe1dd; border-radius: 14px; background: #fbfdfd; padding: 30px; text-align: center; cursor: pointer; transition: all .2s; }
-        .dropzone-box:hover { border-color: var(--accent); background: #f4faf9; }
-    </style>
+
+    <th:block layout:fragment="head">
+        <!-- Class kiểu Bootstrap được thu gọn & giới hạn trong .bs-compat (không đè lên layout) -->
+        <link rel="stylesheet" th:href="@{/css/bs-compat.css}">
+        <script th:src="@{/js/bs-compat.js}" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    </th:block>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
 
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<div layout:fragment="content" class="bs-compat">
 
-    <main class="container py-4 flex-grow-1" style="max-width: 860px;">
+    <div class="container py-4" style="max-width: 860px;">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb small">
@@ -70,7 +57,21 @@
             </div>
 
             <!-- Quy tắc nộp bài lưu ý -->
-            <div class="alert alert-info border-0 rounded-3 p-3 mb-4 small" style="background-color: #f0f8f7; color: #155d57;">
+            <div th:if="${existingSubmission != null}" class="alert alert-warning border-0 rounded-3 p-3 mb-4 small" style="background-color: #fff9e6; color: #856404;">
+                <div class="d-flex align-items-start gap-2">
+                    <i data-lucide="rotate-ccw" class="flex-shrink-0 mt-0.5 text-warning"></i>
+                    <div>
+                        <strong>Quy định nộp lại bài tập:</strong>
+                        <ul class="mb-0 ps-3 mt-1">
+                            <li>Bài tập này đã được giảng viên mở lại cho bạn (lượt nộp lại: <strong th:text="${(existingSubmission.resubmitCount + 1) + '/' + existingSubmission.maxResubmissions}">1/3</strong>).</li>
+                            <li>Bạn có thể chỉnh sửa nội dung văn bản hoặc chọn tệp mới để thay thế tệp cũ (nếu không chọn tệp mới, hệ thống sẽ giữ nguyên tệp đã nộp).</li>
+                            <li>Bắt buộc phải có <strong>nội dung văn bản</strong> hoặc <strong>tệp đính kèm</strong> (tính cả tệp cũ được giữ lại).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${existingSubmission != null}" class="alert alert-info border-0 rounded-3 p-3 mb-4 small" style="background-color: #f0f8f7; color: #155d57;">
                 <div class="d-flex align-items-start gap-2">
                     <i data-lucide="info" class="flex-shrink-0 mt-0.5"></i>
                     <div>
@@ -89,6 +90,8 @@
                   th:object="${submissionForm}" method="post" enctype="multipart/form-data" id="submitForm">
 
                 <input type="hidden" th:field="*{assignmentId}">
+                <input type="hidden" id="hasExistingFile" th:value="${existingSubmission != null && existingSubmission.hasFile}">
+                <input type="hidden" id="isResubmit" th:value="${existingSubmission != null}">
 
                 <!-- Phần 1: Nội dung văn bản -->
                 <div class="mb-4">
@@ -105,16 +108,26 @@
                     <label class="form-label">
                         2. Đính kèm tệp bài làm (Tùy chọn nếu đã có nội dung văn bản)
                     </label>
+                    <div th:if="${existingSubmission != null && existingSubmission.hasFile}" class="alert alert-light border rounded-3 p-3 mb-2 small">
+                        <div class="d-flex align-items-center gap-2">
+                            <i data-lucide="paperclip" class="text-secondary"></i>
+                            <span>Tệp hiện tại: <strong th:text="${existingSubmission.originalFileName}">bai_tap.pdf</strong></span>
+                            <span class="text-muted">(chọn tệp mới để thay thế, bỏ trống sẽ giữ tệp cũ)</span>
+                        </div>
+                    </div>
                     <div class="dropzone-box" onclick="document.getElementById('file').click();">
                         <i data-lucide="upload-cloud" style="color: var(--accent); width: 42px; height: 42px;" class="mb-2"></i>
                         <p class="mb-1 fw-bold text-dark">Nhấp để chọn tệp từ máy tính của bạn</p>
                         <p class="text-muted small mb-2">Hỗ trợ: PDF, DOCX, PNG, MP3 (Tối đa 20MB)</p>
-                        <input type="file" class="d-none" id="file" name="file" accept=".pdf,.docx,.png,.mp3" onchange="updateFileName(this)">
+                        <input type="file" class="d-none" id="file" name="file" accept=".pdf,.docx,.png,.mp3" onchange="clearSubmitError(); updateFileName(this);">
                         <div id="file-info" class="badge bg-light text-dark border p-2 mt-2 d-none">
                             <i data-lucide="file" class="me-1"></i> <span id="file-name-text"></span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Thông báo lỗi khi chưa có nội dung nộp -->
+                <p id="submitError" class="field-error" role="alert" style="display: none;"></p>
 
                 <!-- Nút thao tác -->
                 <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-5">
@@ -122,18 +135,19 @@
                        class="btn btn-light border px-4 py-2 rounded-3 text-secondary fw-bold">
                         Quay lại chi tiết
                     </a>
-                    <button type="submit" class="btn btn-teal" onclick="return confirmSubmission();">
+                    <button th:if="${existingSubmission != null}" type="submit" class="btn btn-teal" onclick="return confirmSubmission();">
+                        <i data-lucide="rotate-ccw" class="me-1" style="width: 18px; height: 18px; vertical-align: middle;"></i>
+                        Xác nhận nộp lại
+                    </button>
+                    <button th:unless="${existingSubmission != null}" type="submit" class="btn btn-teal" onclick="return confirmSubmission();">
                         <i data-lucide="send" class="me-1" style="width: 18px; height: 18px; vertical-align: middle;"></i>
                         Xác nhận nộp bài (Không thể hoàn tác)
                     </button>
                 </div>
             </form>
         </div>
-    </main>
+    </div>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if (window.lucide) {
             lucide.createIcons();
@@ -142,6 +156,31 @@
         function updateFileName(input) {
             const fileInfo = document.getElementById('file-info');
             const fileNameText = document.getElementById('file-name-text');
+
+            // Kiểm tra tệp giống quy định của server: PDF, DOCX, PNG, MP3 và tối đa 20MB
+            if (input.files && input.files[0]) {
+                const picked = input.files[0];
+                const extension = picked.name.indexOf('.') > -1
+                    ? picked.name.substring(picked.name.lastIndexOf('.') + 1).toLowerCase()
+                    : '';
+                let fileError = '';
+
+                if (['pdf', 'docx', 'png', 'mp3'].indexOf(extension) === -1) {
+                    fileError = 'Định dạng tệp không được hỗ trợ. Vui lòng chọn tệp PDF, DOCX, PNG hoặc MP3.';
+                } else if (picked.size > 20 * 1024 * 1024) {
+                    fileError = 'Dung lượng tệp vượt quá giới hạn 20MB.';
+                }
+
+                if (fileError) {
+                    input.value = '';
+                    fileInfo.classList.add('d-none');
+                    const errorBox = document.getElementById('submitError');
+                    errorBox.textContent = fileError;
+                    errorBox.style.display = 'block';
+                    return;
+                }
+            }
+
             if (input.files && input.files[0]) {
                 fileNameText.textContent = input.files[0].name + " (" + (input.files[0].size / 1024 / 1024).toFixed(2) + " MB)";
                 fileInfo.classList.remove('d-none');
@@ -150,18 +189,50 @@
             }
         }
 
+        function clearSubmitError() {
+            const errorBox = document.getElementById('submitError');
+            if (errorBox) {
+                errorBox.style.display = 'none';
+            }
+            const textArea = document.getElementById('responseText');
+            if (textArea) {
+                textArea.classList.remove('field-invalid');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const textArea = document.getElementById('responseText');
+            if (textArea) {
+                textArea.addEventListener('input', clearSubmitError);
+            }
+        });
+
         function confirmSubmission() {
             const text = document.getElementById('responseText').value.trim();
             const fileInput = document.getElementById('file');
-            const hasFile = fileInput.files && fileInput.files.length > 0;
+            const hasNewFile = fileInput.files && fileInput.files.length > 0;
+            const hasExistingFile = document.getElementById('hasExistingFile') && document.getElementById('hasExistingFile').value === 'true';
+            const isResubmit = document.getElementById('isResubmit') && document.getElementById('isResubmit').value === 'true';
 
-            if (!text && !hasFile) {
-                alert('Vui lòng nhập nội dung văn bản hoặc đính kèm tệp bài làm trước khi nộp.');
+            if (!text && !hasNewFile && !hasExistingFile) {
+                const errorBox = document.getElementById('submitError');
+                errorBox.textContent = 'Vui lòng nhập nội dung văn bản hoặc đính kèm tệp bài làm trước khi nộp.';
+                errorBox.style.display = 'block';
+                document.getElementById('responseText').classList.add('field-invalid');
+                document.getElementById('responseText').focus();
                 return false;
             }
 
-            return confirm('Xác nhận nộp bài? Theo quy định, bạn chỉ được nộp bài duy nhất 1 lần cho bài tập này!');
+            if (isResubmit) {
+                return confirm('Xác nhận nộp lại bài tập?');
+            } else {
+                return confirm('Xác nhận nộp bài? Theo quy định, bạn chỉ được nộp bài duy nhất 1 lần cho bài tập này!');
+            }
         }
+    
     </script>
+
+</div>
+
 </body>
 </html>

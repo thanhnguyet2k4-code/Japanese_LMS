@@ -109,6 +109,7 @@ public class AssignmentInstructorController {
         model.addAttribute("status", status);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", assignmentPage.getTotalPages());
+        model.addAttribute("currentTab", "grading");
         return "instructor/assignment-list";
     }
 
@@ -128,6 +129,7 @@ public class AssignmentInstructorController {
         model.addAttribute("lessons", lessons);
         model.addAttribute("assignmentForm", saveRequest);
         model.addAttribute("isEdit", false);
+        model.addAttribute("currentTab", "grading");
         return "instructor/assignment-form";
     }
 
@@ -149,6 +151,7 @@ public class AssignmentInstructorController {
             model.addAttribute("course", course);
             model.addAttribute("lessons", lessons);
             model.addAttribute("isEdit", false);
+            model.addAttribute("currentTab", "grading");
             return "instructor/assignment-form";
         }
 
@@ -163,6 +166,7 @@ public class AssignmentInstructorController {
             model.addAttribute("lessons", lessons);
             model.addAttribute("isEdit", false);
             model.addAttribute("errorMessage", ex.getMessage());
+            model.addAttribute("currentTab", "grading");
             return "instructor/assignment-form";
         }
     }
@@ -181,6 +185,7 @@ public class AssignmentInstructorController {
         model.addAttribute("lessons", lessons);
         model.addAttribute("assignmentForm", form);
         model.addAttribute("isEdit", true);
+        model.addAttribute("currentTab", "grading");
         return "instructor/assignment-form";
     }
 
@@ -200,6 +205,7 @@ public class AssignmentInstructorController {
             model.addAttribute("course", course);
             model.addAttribute("lessons", lessons);
             model.addAttribute("isEdit", true);
+            model.addAttribute("currentTab", "grading");
             return "instructor/assignment-form";
         }
 
@@ -214,6 +220,7 @@ public class AssignmentInstructorController {
             model.addAttribute("lessons", lessons);
             model.addAttribute("isEdit", true);
             model.addAttribute("errorMessage", ex.getMessage());
+            model.addAttribute("currentTab", "grading");
             return "instructor/assignment-form";
         }
     }
@@ -254,6 +261,24 @@ public class AssignmentInstructorController {
         return "redirect:/instructor/courses/" + courseId + "/assignments";
     }
 
+    // Xóa bài tập hoàn toàn (Hard delete)
+    @PostMapping("/assignments/{assignmentId}/delete")
+    public String deleteAssignment(
+            @PathVariable Long assignmentId,
+            @RequestParam Long courseId,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        Long instructorId = resolveInstructorId(courseId, assignmentId, request);
+        try {
+            assignmentService.deleteAssignment(assignmentId, instructorId);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa bài tập và toàn bộ bài nộp liên quan.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/instructor/courses/" + courseId + "/assignments";
+    }
+
     // ==========================================
     // S18: Review danh sách bài nộp của học viên
     // ==========================================
@@ -278,6 +303,7 @@ public class AssignmentInstructorController {
         model.addAttribute("status", status);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", submissions.getTotalPages());
+        model.addAttribute("currentTab", "grading");
         return "instructor/submission-review";
     }
 
@@ -303,6 +329,33 @@ public class AssignmentInstructorController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFilename + "\"; filename*=UTF-8''" + encodedFilename)
                 .body(resource);
+    }
+
+    // Mở lại bài tập cho học viên nộp lại (tối đa 3 lần)
+    @PostMapping("/submissions/{submissionId}/reopen")
+    public String reopenSubmission(
+            @PathVariable Long submissionId,
+            @RequestParam(required = false) Long assignmentId,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        Long instructorId = resolveInstructorId(null, assignmentId, request);
+        Long redirectAssignmentId = assignmentId;
+        try {
+            SubmissionResponse submission = submissionService.reopenSubmission(submissionId, instructorId);
+            if (redirectAssignmentId == null) {
+                redirectAssignmentId = submission.getAssignmentId();
+            }
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã mở lại bài tập cho học viên " + submission.getStudentName() + " nộp lại.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        if (redirectAssignmentId != null) {
+            return "redirect:/instructor/assignments/" + redirectAssignmentId + "/submissions";
+        }
+        return "redirect:/instructor";
     }
 
     // ==========================================
@@ -350,6 +403,7 @@ public class AssignmentInstructorController {
         model.addAttribute("nextId", nextId);
         model.addAttribute("prevStudentName", prevStudentName);
         model.addAttribute("nextStudentName", nextStudentName);
+        model.addAttribute("currentTab", "grading");
         return "instructor/submission-grade";
     }
 

@@ -13,6 +13,7 @@ import com.japaneselms.exception.BusinessException;
 import com.japaneselms.exception.ResourceNotFoundException;
 import com.japaneselms.repository.*;
 import com.japaneselms.assignment.service.AssignmentService;
+import com.japaneselms.assignment.service.FileStorageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final UserRepository userRepository;
     private final SubmissionRepository submissionRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final FileStorageService fileStorageService;
 
     public AssignmentServiceImpl(
             AssignmentRepository assignmentRepository,
@@ -40,7 +42,8 @@ public class AssignmentServiceImpl implements AssignmentService {
             LessonRepository lessonRepository,
             UserRepository userRepository,
             SubmissionRepository submissionRepository,
-            EnrollmentRepository enrollmentRepository
+            EnrollmentRepository enrollmentRepository,
+            FileStorageService fileStorageService
     ) {
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
@@ -48,6 +51,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         this.userRepository = userRepository;
         this.submissionRepository = submissionRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -203,6 +207,31 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     @Override
+    public void deleteAssignment(Long assignmentId, Long currentUserId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bài tập không tồn tại với ID: " + assignmentId));
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
+
+        validateInstructorCourseAccess(assignment.getCourse(), currentUser);
+
+        // Lấy toàn bộ bài nộp và xóa tệp đính kèm trên ổ đĩa
+        List<Submission> submissions = submissionRepository.findByAssignment_AssignmentId(assignmentId);
+        for (Submission sub : submissions) {
+            if (sub.getStoragePath() != null && !sub.getStoragePath().isBlank()) {
+                fileStorageService.deleteFile(sub.getStoragePath());
+            }
+        }
+
+        // Xóa toàn bộ submission của bài tập
+        submissionRepository.deleteAll(submissions);
+
+        // Xóa bài tập
+        assignmentRepository.delete(assignment);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<AssignmentResponse> getAssignmentsByCourseForInstructor(
             Long courseId,
@@ -303,10 +332,13 @@ public class AssignmentServiceImpl implements AssignmentService {
                     assignment.getAssignmentId(), currentUserId
             );
             if (submissionOpt.isPresent()) {
+                Submission sub = submissionOpt.get();
                 dto.setHasSubmitted(true);
-                dto.setStudentSubmissionId(submissionOpt.get().getSubmissionId());
+                dto.setStudentSubmissionId(sub.getSubmissionId());
+                dto.setCanResubmit(sub.isReopened());
             } else {
                 dto.setHasSubmitted(false);
+                dto.setCanResubmit(false);
             }
         }
 

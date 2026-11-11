@@ -10,6 +10,7 @@
     <title layout:title-pattern="$CONTENT_TITLE">Khu vực giảng viên - Japanese LMS</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <th:block layout:fragment="head"></th:block>
+    <script th:src="@{/js/form-validation.js}" defer></script>
 </head>
 
 <body class="admin-layout-page">
@@ -27,42 +28,48 @@
         </div>
 
         <nav class="sidebar-menu">
-                <a th:href="@{/instructor}" class="sidebar-item"
-                   th:classappend="${currentTab == 'dashboard' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'dashboard' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">📊</span>
-                    <span class="sidebar-item-text">Tổng quan</span>
-                </a>
-                <a th:href="@{/instructor/courses}" class="sidebar-item"
-                   th:classappend="${currentTab == 'instructor-courses' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'instructor-courses' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">📚</span>
-                    <span class="sidebar-item-text">Quản lý khóa học</span>
-                </a>
-                <a th:href="@{/instructor/lesson-courses}" class="sidebar-item"
-                   th:classappend="${currentTab == 'lessons' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'lessons' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">🎬</span>
-                    <span class="sidebar-item-text">Bài học &amp; tài liệu</span>
-                </a>
-                <a th:href="@{/instructor/grading}" class="sidebar-item"
-                   th:classappend="${currentTab == 'grading' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'grading' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">📝</span>
-                    <span class="sidebar-item-text">Chấm bài</span>
-                </a>
-                <a th:href="@{/instructor/results}" class="sidebar-item"
-                   th:classappend="${currentTab == 'assessment-results' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'assessment-results' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">🏅</span>
-                    <span class="sidebar-item-text">Kết quả đánh giá</span>
-                </a>
-                <a th:href="@{/profile}" class="sidebar-item"
-                   th:classappend="${currentTab == 'profile' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">👤</span>
-                    <span class="sidebar-item-text">Hồ sơ cá nhân</span>
-                </a>
+            <a th:href="@{/instructor}" class="sidebar-item"
+               th:classappend="${currentTab == 'dashboard' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'dashboard' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">📊</span>
+                <span class="sidebar-item-text">Tổng quan</span>
+            </a>
+            <a th:href="@{/instructor/courses}" class="sidebar-item"
+               th:classappend="${currentTab == 'instructor-courses' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'instructor-courses' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">📚</span>
+                <span class="sidebar-item-text">Quản lý khóa học</span>
+            </a>
+            <a th:href="@{/instructor/courses/waiting}" class="sidebar-item"
+               th:classappend="${currentTab == 'waiting-courses' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'waiting-courses' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">⏳</span>
+                <span class="sidebar-item-text">Khóa học chờ</span>
+            </a>
+            <a th:href="@{/instructor/lesson-courses}" class="sidebar-item"
+               th:classappend="${currentTab == 'lessons' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'lessons' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">🎬</span>
+                <span class="sidebar-item-text">Bài học &amp; tài liệu</span>
+            </a>
+            <a th:href="@{/instructor/grading-courses}" class="sidebar-item"
+               th:classappend="${currentTab == 'grading' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'grading' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">📝</span>
+                <span class="sidebar-item-text">Chấm bài</span>
+            </a>
+            <a th:href="@{/instructor/results}" class="sidebar-item"
+               th:classappend="${currentTab == 'assessment-results' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'assessment-results' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">🏅</span>
+                <span class="sidebar-item-text">Kết quả đánh giá</span>
+            </a>
+            <a th:href="@{/profile}" class="sidebar-item"
+               th:classappend="${currentTab == 'profile' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">👤</span>
+                <span class="sidebar-item-text">Hồ sơ cá nhân</span>
+            </a>
         </nav>
 
         <div class="sidebar-bottom">

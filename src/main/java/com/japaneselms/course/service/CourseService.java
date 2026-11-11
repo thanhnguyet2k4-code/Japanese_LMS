@@ -55,7 +55,7 @@ public class CourseService {
     @Transactional(readOnly = true)
     public CourseDetailDto getActiveCourseDetail(Long courseId) {
         Course course = courseRepository
-                .findByCourseIdAndCourseStatus(courseId, CourseStatus.ACTIVE)
+                .findOpenForStudents(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
         long lessonCount = lessonRepository

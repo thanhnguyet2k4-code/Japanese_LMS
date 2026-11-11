@@ -52,18 +52,18 @@ public class RegistrationController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        // Kiem tra cac truong trong DTO
-        if (bindingResult.hasErrors()) {
-            return "account/register";
-        }
-
-        // Kiem tra mat khau xac nhan
-        if (!request.isPasswordMatching()) {
+        // Kiem tra mat khau xac nhan (chi bao khi o xac nhan da hop le de khong trung thong bao)
+        if (!bindingResult.hasFieldErrors("confirmPassword")
+                && !request.isPasswordMatching()) {
             bindingResult.rejectValue(
                     "confirmPassword",
                     "password.mismatch",
                     "Mật khẩu xác nhận không khớp."
             );
+        }
+
+        // Kiem tra cac truong trong DTO
+        if (bindingResult.hasErrors()) {
             return "account/register";
         }
 

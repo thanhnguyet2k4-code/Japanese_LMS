@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${assignment.title + ' — S16 Chi tiết bài tập'}">S16 — Chi tiết bài tập</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
-    <style>
-        :root {
-            --ink: #172b40;
-            --muted: #657789;
-            --line: #e2e9ee;
-            --accent: #087f77;
-            --accent-hover: #066c66;
-            --bg-page: #f4f8f9;
-        }
-        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
-        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
-        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 11px 26px; border: none; transition: all .2s; }
-        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(8,127,119,0.25); }
-        .instruction-box { background-color: #fafbfc; border-radius: 12px; border: 1px solid #e9edf0; padding: 20px; white-space: pre-wrap; line-height: 1.7; font-size: 0.98rem; }
-    </style>
+
+    <th:block layout:fragment="head">
+        <!-- Class kiểu Bootstrap được thu gọn & giới hạn trong .bs-compat (không đè lên layout) -->
+        <link rel="stylesheet" th:href="@{/css/bs-compat.css}">
+        <script th:src="@{/js/bs-compat.js}" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    </th:block>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
 
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<div layout:fragment="content" class="bs-compat">
 
-    <main class="container py-4 flex-grow-1" style="max-width: 920px;">
+    <div class="container py-4" style="max-width: 920px;">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb small">
@@ -102,7 +91,10 @@
                     </span>
 
                     <!-- Badge nộp bài -->
-                    <span th:if="${submission != null}" class="badge bg-success px-3 py-2 rounded-pill fw-bold">
+                    <span th:if="${submission != null && submission.reopened}" class="badge bg-info text-white px-3 py-2 rounded-pill fw-bold">
+                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px; vertical-align: middle;"></i> Được nộp lại
+                    </span>
+                    <span th:if="${submission != null && !submission.reopened}" class="badge bg-success px-3 py-2 rounded-pill fw-bold">
                         <i data-lucide="check" style="width: 14px; height: 14px; vertical-align: middle;"></i> Đã nộp bài
                     </span>
                     <span th:if="${submission == null}" class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold">
@@ -154,9 +146,26 @@
                         <div class="small" th:text="${submission.feedback}">Làm bài rất tốt!</div>
                     </div>
 
+                    <!-- Alert khi giảng viên đã mở lại bài tập -->
+                    <div th:if="${submission.reopened}" class="alert alert-info border-0 rounded-3 p-3 mt-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style="background-color: #e8f4fd; color: #0c5460;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i data-lucide="info" class="text-info flex-shrink-0"></i>
+                            <div>
+                                <strong>Giảng viên đã mở lại bài tập. Bạn có thể nộp lại.</strong>
+                                <div class="small text-muted">Vui lòng cập nhật câu trả lời hoặc tải lên tệp mới.</div>
+                            </div>
+                        </div>
+                        <a th:href="@{/student/assignments/{id}/submit(id=${assignment.assignmentId})}" class="btn btn-sm btn-teal">
+                            <i data-lucide="upload" class="me-1" style="width: 14px; height: 14px; vertical-align: middle;"></i> Nộp lại bài
+                        </a>
+                    </div>
+
                     <div class="alert alert-light border small text-muted mt-3 mb-0">
                         <i data-lucide="info" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-                        Theo quy định của hệ thống, mỗi học viên chỉ được nộp bài 1 lần duy nhất cho mỗi bài tập.
+                        Theo quy định của hệ thống, học viên chỉ có thể nộp lại khi được giảng viên mở lại bài tập (tối đa 3 lần nộp lại).
+                        <span th:if="${submission.resubmitCount > 0}" class="fw-bold text-dark d-block mt-1">
+                            Bạn đã nộp lại <span th:text="${submission.resubmitCount + '/' + submission.maxResubmissions}">1/3</span> lần.
+                        </span>
                     </div>
                 </div>
 
@@ -171,15 +180,16 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if (window.lucide) {
             lucide.createIcons();
         }
+    
     </script>
+
+</div>
+
 </body>
 </html>

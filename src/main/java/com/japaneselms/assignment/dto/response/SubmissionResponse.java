@@ -21,6 +21,11 @@ public class SubmissionResponse {
     private LocalDateTime gradedAt;
     private boolean graded;
     private boolean hasFile;
+    private boolean reopened;
+    private LocalDateTime reopenedAt;
+    private int resubmitCount;
+    private int maxResubmissions;
+    private boolean canReopen;
 
     public SubmissionResponse() {
     }
@@ -151,5 +156,45 @@ public class SubmissionResponse {
 
     public void setHasFile(boolean hasFile) {
         this.hasFile = hasFile;
+    }
+
+    public boolean isReopened() {
+        return reopened;
+    }
+
+    public void setReopened(boolean reopened) {
+        this.reopened = reopened;
+    }
+
+    public LocalDateTime getReopenedAt() {
+        return reopenedAt;
+    }
+
+    public void setReopenedAt(LocalDateTime reopenedAt) {
+        this.reopenedAt = reopenedAt;
+    }
+
+    public int getResubmitCount() {
+        return resubmitCount;
+    }
+
+    public void setResubmitCount(int resubmitCount) {
+        this.resubmitCount = resubmitCount;
+    }
+
+    public int getMaxResubmissions() {
+        return maxResubmissions;
+    }
+
+    public void setMaxResubmissions(int maxResubmissions) {
+        this.maxResubmissions = maxResubmissions;
+    }
+
+    public boolean isCanReopen() {
+        return canReopen;
+    }
+
+    public void setCanReopen(boolean canReopen) {
+        this.canReopen = canReopen;
     }
 }

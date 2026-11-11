@@ -7,50 +7,112 @@
     <title>Khóa học của tôi</title>
 </head>
 <body>
-<section layout:fragment="content" class="lesson-module">
+<section layout:fragment="content" class="lesson-module list-page">
     <header class="page-header">
         <p class="page-subtitle">HỌC VIÊN</p>
         <h1 class="page-title">Khóa học đã đăng ký</h1>
         <p>Theo dõi phần trăm hoàn thành và chọn khóa học để tiếp tục học bài.</p>
     </header>
 
-    <div class="empty-state-box" th:if="${courses == null or #lists.isEmpty(courses)}">
+    <!-- Chưa đăng ký khóa học nào -->
+    <div class="empty-state-box" th:if="${totalAll == 0}">
         <strong>Bạn chưa đăng ký khóa học nào</strong>
         <p>Hãy đăng ký khóa học để bắt đầu học bài.</p>
     </div>
 
-    <div class="lesson-card-grid" th:if="${courses != null and !#lists.isEmpty(courses)}">
-        <article class="card lesson-course-card" th:each="course : ${courses}">
-            <img class="course-cover"
-                 th:if="${course.coverImagePath != null}"
-                 th:src="@{/files/course-images/{courseId}(courseId=${course.courseId}, v=${#temporals.format(course.updatedAt, 'yyyyMMddHHmmss')})}"
-                 th:alt="${course.courseName}">
-            <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
-            <h2 th:text="${course.courseName}">Tên khóa học</h2>
-            <p class="muted" th:text="${course.instructor != null ? course.instructor.fullName : ''}">Giảng viên</p>
-
-            <div class="progress-block">
-                <div class="progress-meta">
-                    <span th:text="${course.completedLessons} + '/' + ${course.totalLessons} + ' bài'">0/0 bài</span>
-                    <strong th:text="${course.progressPercent} + '%'">0%</strong>
+    <th:block th:if="${totalAll > 0}">
+        <!-- Tìm kiếm / lọc / sắp xếp -->
+        <section class="card" style="margin-bottom: 22px;">
+            <form class="list-toolbar" style="margin-bottom: 0;" th:action="@{/student/lesson-courses}" method="get" role="search">
+                <div class="form-group grow">
+                    <label class="form-label" for="keyword">Tìm theo tên khóa học</label>
+                    <input id="keyword" type="search" name="keyword" maxlength="100"
+                           placeholder="Nhập tên khóa học..." th:value="${keyword}">
                 </div>
-                <div class="progress-track" role="progressbar"
-                     th:attr="aria-valuenow=${course.progressPercent}"
-                     aria-valuemin="0" aria-valuemax="100">
-                    <span class="progress-fill" th:style="'width:' + ${course.progressPercent} + '%'"></span>
-                </div>
-            </div>
 
-            <a class="btn btn-primary"
-               th:href="@{/student/courses/{courseId}/lessons(courseId=${course.courseId})}">
-                Vào học
-            </a>
-            <a class="btn btn-outline"
-               th:href="@{/student/courses/{courseId}/assignments(courseId=${course.courseId})}">
-                Bài tập
-            </a>
-        </article>
-    </div>
+                <div class="form-group">
+                    <label class="form-label" for="level">Cấp độ JLPT</label>
+                    <select id="level" name="level">
+                        <option value="">Tất cả cấp độ</option>
+                        <option th:each="lv : ${levels}"
+                                th:value="${lv.name()}"
+                                th:text="${lv.name()}"
+                                th:selected="${lv.name() == level}">N5
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="status">Tiến độ</label>
+                    <select id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="learning" th:selected="${status == 'learning'}">Đang học</option>
+                        <option value="completed" th:selected="${status == 'completed'}">Đã hoàn thành</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sort">Sắp xếp</label>
+                    <select id="sort" name="sort">
+                        <option value="">Mặc định (đăng ký mới nhất)</option>
+                        <option value="courseName,asc" th:selected="${sort == 'courseName,asc'}">Tên A → Z</option>
+                        <option value="courseName,desc" th:selected="${sort == 'courseName,desc'}">Tên Z → A</option>
+                        <option value="createdAt,desc" th:selected="${sort == 'createdAt,desc'}">Khóa học mới tạo</option>
+                        <option value="createdAt,asc" th:selected="${sort == 'createdAt,asc'}">Khóa học tạo lâu nhất</option>
+                    </select>
+                </div>
+
+                <div class="toolbar-actions">
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                    <a th:href="@{/student/lesson-courses}" class="btn btn-outline">Đặt lại</a>
+                </div>
+            </form>
+        </section>
+
+        <p class="list-summary">
+            Tìm thấy <strong th:text="${totalElements}">0</strong> khóa học
+        </p>
+
+        <div class="empty-state-box card" th:if="${totalElements == 0}">
+            <strong>Không tìm thấy khóa học phù hợp</strong>
+            <p>Hãy thử từ khóa hoặc bộ lọc khác.</p>
+            <a class="btn btn-outline" th:href="@{/student/lesson-courses}">Xóa bộ lọc</a>
+        </div>
+
+        <div class="course-tile-grid" th:if="${totalElements > 0}">
+            <article class="card lesson-course-card course-tile" th:each="course : ${courses}">
+                <div th:replace="~{fragments/list-controls :: cover(${course.coverImagePath != null and !#strings.isEmpty(course.coverImagePath)}, ${course.courseId}, ${#temporals.format(course.updatedAt, 'yyyyMMddHHmmss')}, ${course.courseName})}"></div>
+                <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
+                <h2 th:text="${course.courseName}">Tên khóa học</h2>
+                <p class="muted" th:text="${course.instructor != null ? course.instructor.fullName : ''}">Giảng viên</p>
+
+                <div class="progress-block">
+                    <div class="progress-meta">
+                        <span th:text="${course.completedLessons} + '/' + ${course.totalLessons} + ' bài'">0/0 bài</span>
+                        <strong th:text="${course.progressPercent} + '%'">0%</strong>
+                    </div>
+                    <div class="progress-track" role="progressbar"
+                         th:attr="aria-valuenow=${course.progressPercent}"
+                         aria-valuemin="0" aria-valuemax="100">
+                        <span class="progress-fill" th:style="'width:' + ${course.progressPercent} + '%'"></span>
+                    </div>
+                </div>
+
+                <div class="course-tile-actions">
+                    <a class="btn btn-primary"
+                       th:href="@{/student/courses/{courseId}/lessons(courseId=${course.courseId})}">
+                        Vào học
+                    </a>
+                    <a class="btn btn-outline"
+                       th:href="@{/student/courses/{courseId}/assignments(courseId=${course.courseId})}">
+                        Bài tập
+                    </a>
+                </div>
+            </article>
+        </div>
+
+        <th:block th:replace="~{fragments/list-controls :: pager('/student/lesson-courses')}"></th:block>
+    </th:block>
 </section>
 </body>
 </html>

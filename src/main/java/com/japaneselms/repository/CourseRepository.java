@@ -38,12 +38,16 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query(value = """
             SELECT c FROM Course c
             WHERE c.courseStatus = 'ACTIVE'
+              AND EXISTS (SELECT 1 FROM Lesson l
+                          WHERE l.course = c AND l.lessonStatus = 'ACTIVE')
               AND LOWER(c.courseName) LIKE :pattern ESCAPE '!'
               AND (:level = '' OR c.jlptLevel = :level)
             """,
             countQuery = """
                     SELECT COUNT(c) FROM Course c
                     WHERE c.courseStatus = 'ACTIVE'
+                      AND EXISTS (SELECT 1 FROM Lesson l
+                                  WHERE l.course = c AND l.lessonStatus = 'ACTIVE')
                       AND LOWER(c.courseName) LIKE :pattern ESCAPE '!'
                       AND (:level = '' OR c.jlptLevel = :level)
                     """)
@@ -52,6 +56,17 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             @Param("level") String level,
             Pageable pageable
     );
+
+    // Khoa hoc ACTIVE va da co it nhat 1 bai hoc ACTIVE (hoc vien moi duoc thay/dang ky).
+    @EntityGraph(attributePaths = "instructor")
+    @Query("""
+            SELECT c FROM Course c
+            WHERE c.courseId = :courseId
+              AND c.courseStatus = 'ACTIVE'
+              AND EXISTS (SELECT 1 FROM Lesson l
+                          WHERE l.course = c AND l.lessonStatus = 'ACTIVE')
+            """)
+    Optional<Course> findOpenForStudents(@Param("courseId") Long courseId);
 
     // MF-02: Tim khoa hoc theo id va trang thai, kem Instructor.
     @EntityGraph(attributePaths = "instructor")
@@ -66,6 +81,33 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             Long instructorId,
             Pageable pageable
     );
+
+    // Khoa hoc cua Instructor DA co bai hoc (hien o "Quan ly khoa hoc").
+    @EntityGraph(attributePaths = "instructor")
+    @Query(value = """
+            SELECT c FROM Course c
+            WHERE c.instructor.userId = :instructorId
+              AND EXISTS (SELECT 1 FROM Lesson l WHERE l.course = c)
+            """,
+            countQuery = """
+                    SELECT COUNT(c) FROM Course c
+                    WHERE c.instructor.userId = :instructorId
+                      AND EXISTS (SELECT 1 FROM Lesson l WHERE l.course = c)
+                    """)
+    Page<Course> findListedByInstructor(
+            @Param("instructorId") Long instructorId,
+            Pageable pageable
+    );
+
+    // Khoa hoc cua Instructor CHUA co bai hoc nao (muc "Khoa hoc cho").
+    @EntityGraph(attributePaths = "instructor")
+    @Query("""
+            SELECT c FROM Course c
+            WHERE c.instructor.userId = :instructorId
+              AND NOT EXISTS (SELECT 1 FROM Lesson l WHERE l.course = c)
+            ORDER BY c.createdAt DESC
+            """)
+    List<Course> findWaitingByInstructor(@Param("instructorId") Long instructorId);
 
     // MF-02: Kiem tra trung ten khoa hoc khi tao moi.
     boolean existsByInstructor_UserIdAndCourseNameIgnoreCase(

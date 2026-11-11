@@ -1,1 +1,64 @@
-<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Japanese LMS</title><link rel="stylesheet" th:href="@{/css/style.css}"><style>body{font-family:Arial,sans-serif;background:#f5f7fb;color:#172238}main{max-width:1050px;margin:32px auto;padding:24px;background:white;border-radius:12px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #ddd;text-align:left;padding:12px}a{color:#1658a8}input,textarea,button,select{padding:9px;margin:5px 0}input,textarea{max-width:100%;box-sizing:border-box}button,.action{background:#1959ad;color:white;border:0;border-radius:5px;padding:9px 14px;cursor:pointer;text-decoration:none}.error{color:#b42318}.ok{color:green}.pagination{margin:18px 0} .muted{color:#667085}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body><div th:replace="~{fragments/navbar :: navbar}"></div><main><h1>Danh sách bài nộp cần chấm</h1><p class="ok" th:if="${message}" th:text="${message}"></p><p><a th:href="@{/instructor/grading(status='all')}">Tất cả</a> | <a th:href="@{/instructor/grading(status='pending')}">Chưa chấm</a> | <a th:href="@{/instructor/grading(status='graded')}">Đã chấm</a> | <a th:href="@{/instructor/results}">Kết quả</a></p><table><thead><tr><th>Học viên</th><th>Khóa học</th><th>Bài tập</th><th>Nộp lúc</th><th>Điểm</th><th>Thao tác</th></tr></thead><tbody><tr th:each="s : ${results.content}"><td th:text="${s.student.fullName}"></td><td th:text="${s.assignment.course.courseName}"></td><td th:text="${s.assignment.title}"></td><td th:text="${#temporals.format(s.submittedAt, 'dd/MM/yyyy HH:mm')}"></td><td th:text="${s.grade == null ? 'Chưa chấm' : s.grade}"></td><td><a th:href="@{/instructor/grading/{id}(id=${s.submissionId})}">Chấm / sửa điểm</a></td></tr><tr th:if="${results.empty}"><td colspan="6">Chưa có bài nộp.</td></tr></tbody></table><div class="pagination"><a th:if="${results.hasPrevious()}" th:href="@{/instructor/grading(page=${results.number-1},status=${status})}">← Trang trước</a><span th:text="${' Trang ' + (results.number+1) + ' / ' + (results.totalPages == 0 ? 1 : results.totalPages) + ' '}"></span><a th:if="${results.hasNext()}" th:href="@{/instructor/grading(page=${results.number+1},status=${status})}">Trang sau →</a></div></main><div th:replace="~{fragments/footer :: footer}"></div></body></html>
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+<head>
+    <title>Danh sách bài nộp cần chấm - Japanese LMS</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <p class="page-subtitle">GIẢNG VIÊN</p>
+        <h1 class="page-title">Danh sách bài nộp cần chấm</h1>
+    </header>
+
+    <div class="message success" th:if="${message}" th:text="${message}"></div>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:href="@{/instructor/grading(status='all')}">Tất cả</a>
+        <a class="btn btn-outline" th:href="@{/instructor/grading(status='pending')}">Chưa chấm</a>
+        <a class="btn btn-outline" th:href="@{/instructor/grading(status='graded')}">Đã chấm</a>
+        <a class="btn btn-outline" th:href="@{/instructor/results}">Kết quả</a>
+    </div>
+
+    <div class="card">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Học viên</th>
+                    <th>Khóa học</th>
+                    <th>Bài tập</th>
+                    <th>Nộp lúc</th>
+                    <th>Điểm</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${results.content}">
+                    <td th:text="${s.student.fullName}"></td>
+                    <td th:text="${s.assignment.course.courseName}"></td>
+                    <td th:text="${s.assignment.title}"></td>
+                    <td th:text="${#temporals.format(s.submittedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${s.grade == null ? 'Chưa chấm' : s.grade}"></td>
+                    <td><a th:href="@{/instructor/grading/{id}(id=${s.submissionId})}">Chấm / sửa điểm</a></td>
+                </tr>
+                <tr th:if="${results.empty}">
+                    <td colspan="6">Chưa có bài nộp.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:if="${results.hasPrevious()}"
+           th:href="@{/instructor/grading(page=${results.number-1},status=${status})}">← Trang trước</a>
+        <span th:text="${' Trang ' + (results.number+1) + ' / ' + (results.totalPages == 0 ? 1 : results.totalPages) + ' '}"></span>
+        <a class="btn btn-outline" th:if="${results.hasNext()}"
+           th:href="@{/instructor/grading(page=${results.number+1},status=${status})}">Trang sau →</a>
+    </div>
+</section>
+</body>
+</html>

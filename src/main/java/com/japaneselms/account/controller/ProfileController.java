@@ -59,6 +59,7 @@ public class ProfileController {
             return "admin/profile";
         }
 
+        model.addAttribute("currentTab", "profile");
         return "account/profile";
     }
 
@@ -123,6 +124,7 @@ public class ProfileController {
             return "admin/profile";
         }
 
+        model.addAttribute("currentTab", "profile");
         return "account/profile";
     }
 
@@ -195,6 +197,7 @@ public class ProfileController {
             return "admin/profile";
         }
 
+        model.addAttribute("currentTab", "profile");
         return "account/profile";
     }
 

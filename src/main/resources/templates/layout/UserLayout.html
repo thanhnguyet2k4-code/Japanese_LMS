@@ -23,6 +23,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 
     <th:block layout:fragment="head"></th:block>
+    <script th:src="@{/js/form-validation.js}" defer></script>
 </head>
 
 <body class="admin-layout-page course-page dashboard-page">
@@ -89,13 +90,19 @@
                     <span class="sidebar-item-icon" aria-hidden="true">📚</span>
                     <span class="sidebar-item-text">Quản lý khóa học</span>
                 </a>
+                <a th:href="@{/instructor/courses/waiting}" class="sidebar-item"
+                   th:classappend="${currentTab == 'waiting-courses' ? 'active' : ''}"
+                   th:attr="aria-current=${currentTab == 'waiting-courses' ? 'page' : null}">
+                    <span class="sidebar-item-icon" aria-hidden="true">⏳</span>
+                    <span class="sidebar-item-text">Khóa học chờ</span>
+                </a>
                 <a th:href="@{/instructor/lesson-courses}" class="sidebar-item"
                    th:classappend="${currentTab == 'lessons' ? 'active' : ''}"
                    th:attr="aria-current=${currentTab == 'lessons' ? 'page' : null}">
                     <span class="sidebar-item-icon" aria-hidden="true">🎬</span>
                     <span class="sidebar-item-text">Bài học &amp; tài liệu</span>
                 </a>
-                <a th:href="@{/instructor/grading}" class="sidebar-item"
+                <a th:href="@{/instructor/grading-courses}" class="sidebar-item"
                    th:classappend="${currentTab == 'grading' ? 'active' : ''}"
                    th:attr="aria-current=${currentTab == 'grading' ? 'page' : null}">
                     <span class="sidebar-item-icon" aria-hidden="true">📝</span>
@@ -109,11 +116,11 @@
                 </a>
             </th:block>
             <a th:href="@{/profile}" class="sidebar-item"
-                   th:classappend="${currentTab == 'profile' ? 'active' : ''}"
-                   th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}">
-                    <span class="sidebar-item-icon" aria-hidden="true">👤</span>
-                    <span class="sidebar-item-text">Hồ sơ cá nhân</span>
-                </a>
+               th:classappend="${currentTab == 'profile' ? 'active' : ''}"
+               th:attr="aria-current=${currentTab == 'profile' ? 'page' : null}">
+                <span class="sidebar-item-icon" aria-hidden="true">👤</span>
+                <span class="sidebar-item-text">Hồ sơ cá nhân</span>
+            </a>
         </nav>
 
         <div class="sidebar-bottom">

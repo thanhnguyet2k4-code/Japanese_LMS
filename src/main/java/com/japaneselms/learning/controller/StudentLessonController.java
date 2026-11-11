@@ -1,17 +1,21 @@
 package com.japaneselms.learning.controller;
 
+import com.japaneselms.common.ListPaging;
 import com.japaneselms.common.exception.ResourceNotFoundException;
+import com.japaneselms.course.dto.CourseLevel;
 import com.japaneselms.entity.Course;
 import com.japaneselms.entity.Lesson;
 import com.japaneselms.entity.User;
 import com.japaneselms.learning.service.LearningMaterialService;
 import com.japaneselms.learning.service.LessonService;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -33,8 +37,41 @@ public class StudentLessonController {
     @GetMapping("/student/lesson-courses")
     public String studentHome(
             @AuthenticationPrincipal User currentUser,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String page,
             Model model) {
-        model.addAttribute("courses", lessonService.listStudentCourses(currentUser));
+        List<Course> all = lessonService.listStudentCourses(currentUser);
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        String normalizedLevel = CourseLevel.normalize(level);
+        String normalizedStatus = "completed".equals(status) ? "completed"
+                : "learning".equals(status) ? "learning" : "";
+        String normalizedSort = ListPaging.normalizeSort(sort, "",
+                "createdAt,desc", "createdAt,asc", "courseName,asc", "courseName,desc");
+
+        List<Course> filtered = ListPaging.filterCourses(all, normalizedKeyword, normalizedLevel, normalizedSort);
+        if (!normalizedStatus.isEmpty()) {
+            boolean wantDone = "completed".equals(normalizedStatus);
+            filtered = filtered.stream()
+                    .filter(c -> (c.getProgressPercent() >= 100) == wantDone)
+                    .toList();
+        }
+        Page<Course> pageData = ListPaging.paginate(filtered, ListPaging.parsePage(page), ListPaging.PAGE_SIZE);
+
+        model.addAttribute("courses", pageData.getContent());
+        model.addAttribute("totalAll", all.size());
+        model.addAttribute("currentPage", pageData.getNumber());
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("totalElements", pageData.getTotalElements());
+        model.addAttribute("pageSize", ListPaging.PAGE_SIZE);
+        model.addAttribute("keyword", normalizedKeyword);
+        model.addAttribute("level", normalizedLevel);
+        model.addAttribute("status", normalizedStatus);
+        model.addAttribute("sort", normalizedSort);
+        model.addAttribute("levels", CourseLevel.values());
         model.addAttribute("currentTab", "lessons");
         return "student/courses";
     }

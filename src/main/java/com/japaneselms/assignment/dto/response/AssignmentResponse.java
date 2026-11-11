@@ -20,6 +20,7 @@ public class AssignmentResponse {
     private boolean overdue;
     private boolean hasSubmitted;
     private Long studentSubmissionId;
+    private boolean canResubmit;
 
     public AssignmentResponse() {
     }
@@ -150,5 +151,13 @@ public class AssignmentResponse {
 
     public void setStudentSubmissionId(Long studentSubmissionId) {
         this.studentSubmissionId = studentSubmissionId;
+    }
+
+    public boolean isCanResubmit() {
+        return canResubmit;
+    }
+
+    public void setCanResubmit(boolean canResubmit) {
+        this.canResubmit = canResubmit;
     }
 }

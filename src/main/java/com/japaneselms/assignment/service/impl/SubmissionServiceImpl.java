@@ -21,11 +21,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class SubmissionServiceImpl implements SubmissionService {
+
+    public static final int MAX_RESUBMISSIONS = 3;
 
     private final SubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
@@ -71,12 +75,55 @@ public class SubmissionServiceImpl implements SubmissionService {
             throw new BusinessException("Bài tập này hiện đã ngừng nhận bài (trạng thái INACTIVE).");
         }
 
-        // PRE-3 & BR-06: Mỗi sinh viên chỉ được nộp bài đúng 1 lần cho mỗi bài tập
-        boolean alreadySubmitted = submissionRepository.existsByAssignment_AssignmentIdAndStudent_UserId(
+        // PRE-3 & BR-06: Kiểm tra bài nộp hiện có
+        Optional<Submission> existingSubmissionOpt = submissionRepository.findByAssignment_AssignmentIdAndStudent_UserId(
                 assignment.getAssignmentId(), studentId
         );
-        if (alreadySubmitted) {
-            throw new BusinessException("Bạn đã nộp bài này rồi. Hệ thống chỉ cho phép nộp bài một lần duy nhất.");
+
+        if (existingSubmissionOpt.isPresent()) {
+            Submission existingSubmission = existingSubmissionOpt.get();
+            if (!existingSubmission.isReopened()) {
+                throw new BusinessException("Bạn đã nộp bài này rồi. Bạn chỉ có thể nộp lại khi giảng viên mở lại bài tập.");
+            }
+
+            // Trường hợp reopened = true: cập nhật CHÍNH bản ghi cũ
+            boolean hasNewText = request.getResponseText() != null && !request.getResponseText().trim().isEmpty();
+            MultipartFile file = request.getFile();
+            boolean hasNewFile = file != null && !file.isEmpty();
+            boolean hasOldFile = existingSubmission.getStoragePath() != null && !existingSubmission.getStoragePath().isBlank();
+            boolean hasEffectiveFile = hasNewFile || hasOldFile;
+
+            if (!hasNewText && !hasEffectiveFile) {
+                throw new BusinessException("Vui lòng nhập nội dung văn bản hoặc đính kèm tệp bài làm.");
+            }
+
+            if (hasNewFile) {
+                fileStorageService.validateSubmissionFile(file);
+                String newStoragePath = fileStorageService.storeFile(file);
+                String oldStoragePath = existingSubmission.getStoragePath();
+                if (oldStoragePath != null && !oldStoragePath.isBlank()) {
+                    fileStorageService.deleteFile(oldStoragePath);
+                }
+                existingSubmission.setStoragePath(newStoragePath);
+                existingSubmission.setOriginalFileName(file.getOriginalFilename());
+                String fileType = null;
+                if (file.getOriginalFilename() != null && file.getOriginalFilename().contains(".")) {
+                    fileType = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1).toUpperCase();
+                }
+                existingSubmission.setFileType(fileType);
+            }
+
+            existingSubmission.setResponseText(hasNewText ? request.getResponseText().trim() : null);
+            existingSubmission.setSubmittedAt(LocalDateTime.now());
+            existingSubmission.setGrade(null);
+            existingSubmission.setFeedback(null);
+            existingSubmission.setGradedBy(null);
+            existingSubmission.setGradedAt(null);
+            existingSubmission.setReopened(false);
+            existingSubmission.setResubmitCount(existingSubmission.getResubmitCount() + 1);
+
+            Submission saved = submissionRepository.save(existingSubmission);
+            return mapToResponse(saved);
         }
 
         // BR-08: Bài nộp bắt buộc phải có ít nhất nội dung văn bản hoặc tệp đính kèm
@@ -113,6 +160,8 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setFeedback(null);
         submission.setGradedBy(null);
         submission.setGradedAt(null);
+        submission.setReopened(false);
+        submission.setResubmitCount(0);
 
         Submission saved = submissionRepository.save(submission);
         return mapToResponse(saved);
@@ -201,6 +250,34 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
+    public SubmissionResponse reopenSubmission(Long submissionId, Long instructorId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bài nộp không tồn tại với ID: " + submissionId));
+
+        User user = userRepository.findById(instructorId)
+                .orElseThrow(() -> new AccessDeniedCourseException("Không xác định được giảng viên."));
+        // Giữ nguyên quy tắc phân quyền của nhóm: ADMIN hoặc đúng giảng viên phụ trách khóa học
+        checkStaffAccess(user, submission.getAssignment());
+
+        if (!"ACTIVE".equalsIgnoreCase(submission.getAssignment().getAssignmentStatus())) {
+            throw new BusinessException("Không thể mở lại bài nộp vì bài tập đang ở trạng thái không hoạt động (INACTIVE).");
+        }
+
+        if (submission.isReopened()) {
+            throw new BusinessException("Bài nộp này đã được mở lại, đang chờ học viên nộp lại.");
+        }
+
+        if (submission.getResubmitCount() >= MAX_RESUBMISSIONS) {
+            throw new BusinessException("Học viên đã dùng hết " + MAX_RESUBMISSIONS + " lượt nộp lại.");
+        }
+
+        submission.setReopened(true);
+        submission.setReopenedAt(LocalDateTime.now());
+        Submission saved = submissionRepository.save(submission);
+        return mapToResponse(saved);
+    }
+
+    @Override
     @Transactional
     public SubmissionResponse gradeSubmission(Long submissionId, java.math.BigDecimal grade, String feedback, Long instructorId) {
         Submission submission = submissionRepository.findById(submissionId)
@@ -256,6 +333,11 @@ public class SubmissionServiceImpl implements SubmissionService {
         dto.setGradedAt(s.getGradedAt());
         dto.setGraded(s.getGrade() != null);
         dto.setHasFile(s.getStoragePath() != null && !s.getStoragePath().isBlank());
+        dto.setReopened(s.isReopened());
+        dto.setReopenedAt(s.getReopenedAt());
+        dto.setResubmitCount(s.getResubmitCount());
+        dto.setMaxResubmissions(MAX_RESUBMISSIONS);
+        dto.setCanReopen(!s.isReopened() && s.getResubmitCount() < MAX_RESUBMISSIONS);
         return dto;
     }
 }

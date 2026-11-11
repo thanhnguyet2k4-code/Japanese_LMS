@@ -7,4 +7,5 @@ public interface FileStorageService {
     String storeFile(MultipartFile file);
     Resource loadFileAsResource(String storagePath);
     void validateSubmissionFile(MultipartFile file);
+    void deleteFile(String storagePath);
 }

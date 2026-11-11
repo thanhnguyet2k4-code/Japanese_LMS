@@ -7,7 +7,7 @@
     <title>Khóa học của tôi</title>
 </head>
 <body>
-<section layout:fragment="content" class="lesson-module">
+<section layout:fragment="content" class="lesson-module list-page">
     <header class="page-header">
         <p class="page-subtitle">GIẢNG VIÊN</p>
         <h1 class="page-title">Khóa học của tôi</h1>
@@ -17,22 +17,81 @@
     <div class="message success" th:if="${successMessage != null}" th:text="${successMessage}"></div>
     <div class="message error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
 
-    <div class="empty-state-box" th:if="${courses == null or #lists.isEmpty(courses)}">
+    <div class="empty-state-box" th:if="${totalAll == 0}">
         <strong>Chưa có khóa học</strong>
         <p>Hãy tạo khóa học ở mục <a th:href="@{/instructor/courses}">Quản lý khóa học</a> trước khi thêm bài học.</p>
     </div>
 
-    <div class="lesson-card-grid" th:if="${courses != null and !#lists.isEmpty(courses)}">
-        <article class="card lesson-course-card" th:each="course : ${courses}">
-            <img class="course-cover"
-                 th:if="${course.coverImagePath != null}"
-                 th:src="@{/files/course-images/{courseId}(courseId=${course.courseId}, v=${#temporals.format(course.updatedAt, 'yyyyMMddHHmmss')})}"
-                 th:alt="${course.courseName}"
-                 alt="Ảnh nền khóa học">
-            <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
+    <!-- Tìm kiếm / lọc / sắp xếp -->
+    <section class="card" style="margin-bottom: 22px;" th:if="${totalAll > 0}">
+        <form class="list-toolbar" style="margin-bottom: 0;" th:action="@{/instructor/lesson-courses}" method="get" role="search">
+            <div class="form-group grow">
+                <label class="form-label" for="keyword">Tìm theo tên khóa học</label>
+                <input id="keyword" type="search" name="keyword" maxlength="100"
+                       placeholder="Nhập tên khóa học..." th:value="${keyword}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="level">Cấp độ JLPT</label>
+                <select id="level" name="level">
+                    <option value="">Tất cả cấp độ</option>
+                    <option th:each="lv : ${levels}"
+                            th:value="${lv.name()}"
+                            th:text="${lv.name()}"
+                            th:selected="${lv.name() == level}">N5
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="status">Trạng thái</label>
+                <select id="status" name="status">
+                    <option value="">Tất cả</option>
+                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">ACTIVE</option>
+                    <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">INACTIVE</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sort">Sắp xếp</label>
+                <select id="sort" name="sort">
+                    <option value="">Mặc định</option>
+                    <option value="createdAt,desc" th:selected="${sort == 'createdAt,desc'}">Mới nhất</option>
+                    <option value="createdAt,asc" th:selected="${sort == 'createdAt,asc'}">Cũ nhất</option>
+                    <option value="courseName,asc" th:selected="${sort == 'courseName,asc'}">Tên A → Z</option>
+                    <option value="courseName,desc" th:selected="${sort == 'courseName,desc'}">Tên Z → A</option>
+                </select>
+            </div>
+
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a th:href="@{/instructor/lesson-courses}" class="btn btn-outline">Đặt lại</a>
+            </div>
+        </form>
+    </section>
+
+    <p class="list-summary" th:if="${totalAll > 0}">
+        Tìm thấy <strong th:text="${totalElements}">0</strong> khóa học
+    </p>
+
+    <div class="empty-state-box card" th:if="${totalAll > 0 and totalElements == 0}">
+        <strong>Không tìm thấy khóa học phù hợp</strong>
+        <p>Hãy thử từ khóa hoặc bộ lọc khác.</p>
+        <a class="btn btn-outline" th:href="@{/instructor/lesson-courses}">Xóa bộ lọc</a>
+    </div>
+
+    <div class="course-tile-grid" th:if="${totalElements > 0}">
+        <article class="card lesson-course-card course-tile" th:each="course : ${courses}"
+                 th:classappend="${course.courseStatus == 'INACTIVE'} ? 'is-inactive' : ''">
+            <div th:replace="~{fragments/list-controls :: cover(${course.coverImagePath != null and !#strings.isEmpty(course.coverImagePath)}, ${course.courseId}, ${#temporals.format(course.updatedAt, 'yyyyMMddHHmmss')}, ${course.courseName})}"></div>
+            <div class="course-tile-head">
+                <span class="level-badge" th:text="${course.jlptLevel}">N5</span>
+                <span class="status-pill"
+                      th:classappend="${course.courseStatus == 'ACTIVE'} ? 'status-active' : 'status-inactive'"
+                      th:text="${course.courseStatus}">ACTIVE</span>
+            </div>
             <h2 th:text="${course.courseName}">Tên khóa học</h2>
-            <p class="muted" th:text="${course.courseStatus}">ACTIVE</p>
-            <div class="lesson-toolbar">
+            <div class="course-tile-actions">
                 <a class="btn btn-primary"
                    th:href="@{/instructor/courses/{courseId}/lessons(courseId=${course.courseId})}">
                     Quản lý bài học
@@ -44,6 +103,8 @@
             </div>
         </article>
     </div>
+
+    <th:block th:replace="~{fragments/list-controls :: pager('/instructor/lesson-courses')}"></th:block>
 </section>
 </body>
 </html>

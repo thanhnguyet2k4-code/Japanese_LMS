@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
@@ -39,7 +38,7 @@
                 <h1 class="page-title">Quản lý khóa học</h1>
                 <p class="page-subtitle">
                     Bạn có
-                    <strong th:text="${totalElements}">0</strong>
+                    <strong th:text="${totalAll}">0</strong>
                     khóa học.
                 </p>
             </header>
@@ -49,6 +48,46 @@
                 + Tạo khóa học mới
             </a>
         </div>
+
+        <!-- Tim kiem / loc / sap xep -->
+        <section class="card" style="margin-bottom: 22px;" th:if="${totalAll > 0}">
+            <form class="list-toolbar" style="margin-bottom: 0;" th:action="@{/instructor/courses}" method="get" role="search">
+                <div class="form-group grow">
+                    <label class="form-label" for="keyword">Tìm theo tên khóa học</label>
+                    <input id="keyword" type="search" name="keyword" maxlength="100"
+                           placeholder="Nhập tên khóa học..." th:value="${keyword}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="level">Cấp độ JLPT</label>
+                    <select id="level" name="level">
+                        <option value="">Tất cả cấp độ</option>
+                        <option th:each="lv : ${levels}" th:value="${lv.name()}" th:text="${lv.name()}"
+                                th:selected="${lv.name() == level}">N5</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="status">Trạng thái</label>
+                    <select id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">ACTIVE</option>
+                        <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">INACTIVE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="sort">Sắp xếp</label>
+                    <select id="sort" name="sort">
+                        <option value="createdAt,desc" th:selected="${sort == 'createdAt,desc'}">Mới nhất</option>
+                        <option value="createdAt,asc" th:selected="${sort == 'createdAt,asc'}">Cũ nhất</option>
+                        <option value="courseName,asc" th:selected="${sort == 'courseName,asc'}">Tên A → Z</option>
+                        <option value="courseName,desc" th:selected="${sort == 'courseName,desc'}">Tên Z → A</option>
+                    </select>
+                </div>
+                <div class="toolbar-actions">
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                    <a th:href="@{/instructor/courses}" class="btn btn-outline">Đặt lại</a>
+                </div>
+            </form>
+        </section>
 
         <section class="card">
 
@@ -125,53 +164,29 @@
             <!-- Khong co du lieu -->
             <div class="empty-state" th:if="${courses.isEmpty()}">
 
-                <p th:if="${totalElements == 0}">
+                <p th:if="${totalAll == 0}">
                     Bạn chưa có khóa học nào.
                 </p>
 
-                <p th:if="${totalElements > 0}">
-                    Trang này không có dữ liệu.
+                <p th:if="${totalAll > 0}">
+                    Không tìm thấy khóa học phù hợp.
                 </p>
 
-                <a th:if="${totalElements == 0}"
+                <a th:if="${totalAll == 0}"
                    th:href="@{/instructor/courses/new}"
                    class="btn btn-primary">
                     Tạo khóa học đầu tiên
                 </a>
 
-                <a th:if="${totalElements > 0}"
-                   th:href="@{/instructor/courses(page=0)}"
+                <a th:if="${totalAll > 0}"
+                   th:href="@{/instructor/courses}"
                    class="btn btn-outline">
-                    Về trang đầu
+                    Xóa bộ lọc
                 </a>
             </div>
 
             <!-- Phan trang -->
-            <nav class="pagination"
-                 th:if="${totalPages > 1}"
-                 aria-label="Phân trang khóa học">
-
-                <span>
-                    Trang
-                    <strong th:text="${currentPage + 1}">1</strong>
-                    /
-                    <strong th:text="${totalPages}">1</strong>
-                </span>
-
-                <div class="page-links">
-
-                    <a th:classappend="${currentPage == 0} ? 'disabled' : ''"
-                       th:href="@{/instructor/courses(page=${currentPage > 0 ? currentPage - 1 : 0})}">
-                        ← Trước
-                    </a>
-
-                    <a th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''"
-                       th:href="@{/instructor/courses(page=${currentPage + 1 < totalPages ? currentPage + 1 : currentPage})}">
-                        Sau →
-                    </a>
-
-                </div>
-            </nav>
+            <th:block th:replace="~{fragments/list-controls :: pager('/instructor/courses')}"></th:block>
 
         </section>
 

@@ -1,5 +1,7 @@
 package com.japaneselms.course.controller;
 
+import com.japaneselms.common.ListPaging;
+import com.japaneselms.course.dto.CourseLevel;
 import com.japaneselms.course.dto.MyCourseDto;
 import com.japaneselms.course.exception.EnrollmentException;
 import com.japaneselms.course.exception.EnrollmentException.Reason;
@@ -15,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -65,20 +68,43 @@ public class EnrollmentController {
 
     @GetMapping("/my-courses")
     public String myCourses(
-            @PageableDefault(size = 9, sort = "enrolledAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String page,
             Authentication authentication,
             Model model) {
 
         // KHÔNG nhận studentId từ request -> không thể xem khóa học của người khác (IDOR)
         Long studentId = AuthUtils.requireUserId(authentication);
 
-        Page<MyCourseDto> enrollments = enrollmentService.getMyEnrollments(studentId, pageable);
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        String normalizedLevel = CourseLevel.normalize(level);
+        String normalizedStatus = "ACTIVE".equalsIgnoreCase(status) ? "ACTIVE"
+                : "INACTIVE".equalsIgnoreCase(status) ? "INACTIVE" : "";
+        String normalizedSort = ListPaging.normalizeSort(sort, "enrolledAt,desc",
+                "enrolledAt,desc", "enrolledAt,asc", "courseName,asc", "courseName,desc");
+
+        Page<MyCourseDto> enrollments = enrollmentService.searchMyEnrollments(
+                studentId, normalizedKeyword, normalizedLevel, normalizedStatus,
+                normalizedSort, ListPaging.parsePage(page), ListPaging.PAGE_SIZE);
 
         model.addAttribute("enrollments", enrollments);
         model.addAttribute("currentPage", enrollments.getNumber());
         model.addAttribute("totalPages", enrollments.getTotalPages());
         model.addAttribute("totalElements", enrollments.getTotalElements());
+        model.addAttribute("pageSize", ListPaging.PAGE_SIZE);
 
+        model.addAttribute("keyword", normalizedKeyword);
+        model.addAttribute("level", normalizedLevel);
+        model.addAttribute("status", normalizedStatus);
+        model.addAttribute("sort", normalizedSort);
+        model.addAttribute("levels", CourseLevel.values());
+        model.addAttribute("filtered", !normalizedKeyword.isEmpty() || !normalizedLevel.isEmpty()
+                || !normalizedStatus.isEmpty());
+
+        model.addAttribute("currentTab", "my-courses");
         return "student/my-courses";
     }
 }

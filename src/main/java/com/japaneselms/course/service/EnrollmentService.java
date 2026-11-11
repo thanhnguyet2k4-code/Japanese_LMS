@@ -1,5 +1,7 @@
 package com.japaneselms.course.service;
 
+import com.japaneselms.common.ListPaging;
+import com.japaneselms.course.dto.CourseLevel;
 import com.japaneselms.course.dto.MyCourseDto;
 import com.japaneselms.course.exception.CourseNotFoundException;
 import com.japaneselms.course.exception.EnrollmentException;
@@ -17,6 +19,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,6 +81,12 @@ public class EnrollmentService {
             throw new EnrollmentException(Reason.COURSE_INACTIVE, "Khóa học đã ngừng hoạt động.");
         }
 
+        // Khoa hoc chua co bai hoc nao dang mo thi chua cho hoc vien dang ky.
+        if (courseRepository.findOpenForStudents(courseId).isEmpty()) {
+            throw new EnrollmentException(Reason.COURSE_INACTIVE,
+                    "Khóa học chưa sẵn sàng để đăng ký.");
+        }
+
         if (enrollmentRepository.existsByStudent_UserIdAndCourse_CourseId(studentId, courseId)) {
             throw new EnrollmentException(Reason.ALREADY_ENROLLED, "Bạn đã đăng ký khóa học này.");
         }
@@ -99,5 +109,34 @@ public class EnrollmentService {
         return enrollmentRepository
                 .findByStudent_UserId(studentId, safePageable)
                 .map(MyCourseDto::from);
+    }
+
+    /**
+     * UC10 (mở rộng) – Khóa học của tôi có tìm kiếm theo tên, lọc cấp độ / trạng thái,
+     * sắp xếp và phân trang. Chỉ đọc dữ liệu của chính Student (studentId do Controller lấy từ session).
+     * Không thay đổi getMyEnrollments(...) ở trên.
+     */
+    @Transactional(readOnly = true)
+    public Page<MyCourseDto> searchMyEnrollments(Long studentId, String keyword, String level,
+                                                 String status, String sort, int page, int size) {
+        String lv = CourseLevel.normalize(level);
+        String st = status == null ? "" : status.trim().toUpperCase();
+
+        List<MyCourseDto> all = new ArrayList<>();
+        for (Enrollment enrollment : enrollmentRepository.findWithCourseByStudentId(studentId)) {
+            MyCourseDto dto = MyCourseDto.from(enrollment);
+            if (!lv.isEmpty() && !lv.equalsIgnoreCase(dto.jlptLevel())) {
+                continue;
+            }
+            if (!st.isEmpty() && !st.equalsIgnoreCase(dto.courseStatus())) {
+                continue;
+            }
+            if (!ListPaging.containsKeyword(dto.courseName(), keyword)) {
+                continue;
+            }
+            all.add(dto);
+        }
+        ListPaging.sortBy(all, sort, MyCourseDto::courseName, MyCourseDto::enrolledAt);
+        return ListPaging.paginate(all, page, size);
     }
 }

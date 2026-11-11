@@ -1,0 +1,97 @@
+/* ==========================================================================
+   HỒ SƠ CÁ NHÂN (Học viên / Giảng viên) khi nằm trong layout có Sidebar
+   Mọi rule nằm trong .profile-content nên không ảnh hưởng Sidebar/Topbar và trang khác.
+   Giao diện giữ giống PHẦN 14 của style.css (body.profile-page) mà Admin đang dùng.
+   ========================================================================== */
+.profile-content {
+    max-width: 760px;
+    margin: 0 auto;
+    color: #263449;
+}
+
+.profile-content h1 {
+    margin: 0 0 8px;
+    color: #174a7e;
+}
+
+.profile-content .subtitle {
+    margin: 0 0 24px;
+    color: #66758a;
+}
+
+.profile-content .card {
+    margin-bottom: 22px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.profile-content h2 {
+    margin-top: 0;
+    color: #174a7e;
+    font-size: 21px;
+}
+
+.profile-content .field {
+    margin-bottom: 17px;
+}
+
+.profile-content label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+    color: #263449;
+}
+
+.profile-content button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    min-height: 42px;
+    border: none;
+    border-radius: 7px;
+    background: #1d5fa7;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.profile-content button:hover {
+    background: #164a84;
+}
+
+.profile-content .message {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+.profile-content .success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.profile-content .error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.profile-content .back-link {
+    display: inline-block;
+    margin-top: 4px;
+    color: #1d5fa7;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.profile-content .back-link:hover {
+    text-decoration: underline;
+}

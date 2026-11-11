@@ -136,7 +136,11 @@ public class LessonService {
         if (isAdmin(currentUser)) {
             return courseRepository.findAll();
         }
-        return courseRepository.findByInstructor_UserIdOrderByCreatedAtDesc(currentUser.getUserId());
+        // Khoa hoc chua co bai hoc nam o muc "Khoa hoc cho", khong hien o day.
+        return courseRepository.findByInstructor_UserIdOrderByCreatedAtDesc(currentUser.getUserId())
+                .stream()
+                .filter(c -> lessonRepository.existsByCourse_CourseId(c.getCourseId()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -462,7 +466,7 @@ public class LessonService {
         boolean duplicated = currentSectionId == null
                 ? sectionRepository.existsByCourse_CourseIdAndSectionOrder(courseId, sectionOrder)
                 : sectionRepository.existsByCourse_CourseIdAndSectionOrderAndSectionIdNot(
-                        courseId, sectionOrder, currentSectionId);
+                courseId, sectionOrder, currentSectionId);
 
         if (duplicated) {
             throw new IllegalArgumentException(

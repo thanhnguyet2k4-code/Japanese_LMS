@@ -63,7 +63,9 @@ public class CourseController {
         model.addAttribute("currentPage", courses.getNumber());
         model.addAttribute("totalPages", courses.getTotalPages());
         model.addAttribute("totalElements", courses.getTotalElements());
+        model.addAttribute("pageSize", courses.getSize());
 
+        model.addAttribute("currentTab", "courses");
         return "course/list";
     }
 
@@ -85,6 +87,7 @@ public class CourseController {
         model.addAttribute("course", course);
         model.addAttribute("enrolled", enrolled);
 
+        model.addAttribute("currentTab", "courses");
         return "course/detail";
     }
 }

@@ -1,38 +1,27 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${'Danh sách bài nộp: ' + assignment.title + ' — S18'}">S18 — Xem bài nộp của học viên</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
-    <style>
-        :root {
-            --ink: #172b40;
-            --muted: #657789;
-            --line: #e2e9ee;
-            --accent: #087f77;
-            --accent-hover: #066c66;
-            --bg-page: #f4f8f9;
-        }
-        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
-        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
-        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 8px 18px; border: none; transition: all .2s; }
-        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); }
-        .badge-status { font-weight: 700; font-size: 0.78rem; padding: 6px 12px; border-radius: 50px; }
-    </style>
+
+    <th:block layout:fragment="head">
+        <!-- Class kiểu Bootstrap được thu gọn & giới hạn trong .bs-compat (không đè lên layout) -->
+        <link rel="stylesheet" th:href="@{/css/bs-compat.css}">
+        <script th:src="@{/js/bs-compat.js}" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    </th:block>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
 
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<div layout:fragment="content" class="bs-compat">
 
-    <main class="container-fluid px-md-5 py-4 flex-grow-1">
+    <div class="container-fluid px-md-5 py-4">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><a th:href="@{/courses}" class="text-decoration-none text-muted">Khóa học</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/instructor/grading-courses}" class="text-decoration-none text-muted">Khóa học</a></li>
                 <li class="breadcrumb-item">
                     <a th:href="@{/instructor/courses/{id}/assignments(id=${assignment.courseId})}" 
                        class="text-decoration-none text-muted">Danh sách bài tập</a>
@@ -127,8 +116,16 @@
                                 <span th:unless="${sub.graded}" class="text-muted fst-italic small">Chưa có điểm</span>
                             </td>
                             <td>
-                                <span th:if="${sub.graded}" class="badge badge-status bg-success-subtle text-success border border-success-subtle">Đã chấm</span>
-                                <span th:unless="${sub.graded}" class="badge badge-status bg-warning-subtle text-warning border border-warning-subtle">Chờ chấm</span>
+                                <div th:if="${sub.reopened}">
+                                    <span class="badge badge-status bg-info-subtle text-info border border-info-subtle">Chờ nộp lại</span>
+                                </div>
+                                <div th:unless="${sub.reopened}">
+                                    <span th:if="${sub.graded}" class="badge badge-status bg-success-subtle text-success border border-success-subtle">Đã chấm</span>
+                                    <span th:unless="${sub.graded}" class="badge badge-status bg-warning-subtle text-warning border border-warning-subtle">Chờ chấm</span>
+                                </div>
+                                <div th:if="${sub.resubmitCount > 0}" class="text-muted small mt-1" th:text="${'Đã nộp lại ' + sub.resubmitCount + '/' + sub.maxResubmissions}">
+                                    Đã nộp lại 1/3
+                                </div>
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-inline-flex gap-2">
@@ -146,6 +143,23 @@
                                        th:title="${'Tải tệp: ' + sub.originalFileName}">
                                         <i data-lucide="download" style="width: 14px; height: 14px; vertical-align: middle;"></i> Tải tệp (<span th:text="${sub.fileType}">PDF</span>)
                                     </a>
+
+                                    <!-- Mở lại bài tập cho học viên (chỉ hiển thị khi chưa reopened) -->
+                                    <form th:if="${sub.canReopen}" 
+                                          th:action="@{/instructor/submissions/{id}/reopen(id=${sub.submissionId})}" 
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Mở lại bài tập để học viên này nộp lại?');">
+                                        <input type="hidden" name="assignmentId" th:value="${assignment.assignmentId}">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 text-dark fw-semibold" title="Mở lại bài tập cho học viên nộp lại">
+                                            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px; vertical-align: middle;"></i> Mở lại
+                                        </button>
+                                    </form>
+
+                                    <button th:if="${!sub.reopened && sub.resubmitCount >= sub.maxResubmissions}" 
+                                            type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled 
+                                            th:title="${'Học viên đã sử dụng tối đa ' + sub.maxResubmissions + ' lượt nộp lại.'}">
+                                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px; vertical-align: middle;"></i> Hết lượt (<span th:text="${sub.maxResubmissions + '/' + sub.maxResubmissions}">3/3</span>)
+                                    </button>
 
                                     <!-- Nút Chuyển sang chấm điểm S20 (Dành cho Member 5 tích hợp) -->
                                     <a th:href="@{/instructor/submissions/{id}/grade(id=${sub.submissionId})}" 
@@ -204,15 +218,16 @@
                 </nav>
             </div>
         </div>
-    </main>
+    </div>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if (window.lucide) {
             lucide.createIcons();
         }
+    
     </script>
+
+</div>
+
 </body>
 </html>

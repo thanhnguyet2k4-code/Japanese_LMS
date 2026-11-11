@@ -1,131 +1,169 @@
-
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/MainLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ sơ cá nhân - Japanese LMS</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/profile.css}">
+    </th:block>
 </head>
 
-<body class="profile-page">
-<div class="container">
+<body>
 
-    <h1>Hồ sơ cá nhân</h1>
-    <p class="subtitle">
-        Xem và cập nhật thông tin tài khoản Japanese LMS.
-    </p>
+<div layout:fragment="content" class="profile-content">
 
-    <div class="message success"
-         th:if="${successMessage != null}"
-         th:text="${successMessage}">
-    </div>
 
-    <div class="message error"
-         th:if="${errorMessage != null}"
-         th:text="${errorMessage}">
-    </div>
+<h1>Hồ sơ cá nhân</h1>
+<p class="subtitle">
+    Xem và cập nhật thông tin tài khoản Japanese LMS.
+</p>
 
-    <!-- Thong tin ca nhan -->
-    <section class="card">
-        <h2>Thông tin cá nhân</h2>
+<div class="message success"
+     th:if="${successMessage != null}"
+     th:text="${successMessage}">
+</div>
 
-        <form th:action="@{/profile}" method="post">
+<div class="message error"
+     th:if="${errorMessage != null}"
+     th:text="${errorMessage}">
+</div>
 
-            <input type="hidden"
-                   th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
+<!-- Thong tin ca nhan -->
+<section class="card">
+    <h2>Thông tin cá nhân</h2>
 
-            <div class="field">
-                <label for="fullName">Họ và tên</label>
-                <input id="fullName"
-                       name="fullName"
-                       type="text"
-                       maxlength="100"
-                       required
-                       th:value="${user.fullName}">
-            </div>
+    <form th:action="@{/profile}" method="post" th:object="${profileForm}">
 
-            <div class="field">
-                <label for="email">Email</label>
-                <input id="email"
-                       type="email"
-                       readonly
-                       th:value="${user.email}">
-            </div>
+        <input type="hidden"
+               th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
 
-            <div class="field">
-                <label for="phone">Số điện thoại</label>
-                <input id="phone"
-                       name="phone"
-                       type="text"
-                       maxlength="20"
-                       th:value="${user.phone}">
-            </div>
+        <div class="field">
+            <label for="fullName">Họ và tên</label>
+            <input id="fullName"
+                   type="text"
+                   th:field="*{fullName}"
+                   maxlength="100"
+                   required
+                   th:classappend="${#fields.hasErrors('fullName')} ? ' field-invalid'">
 
-            <div class="field">
-                <label>Vai trò</label>
-                <input type="text"
-                       readonly
-                       th:value="${user.role}">
-            </div>
+            <p class="field-error"
+               th:if="${#fields.hasErrors('fullName')}"
+               th:errors="*{fullName}"></p>
+        </div>
 
-            <button type="submit">Lưu thay đổi</button>
-        </form>
-    </section>
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email"
+                   type="email"
+                   readonly
+                   th:value="${user.email}">
+        </div>
 
-    <!-- Doi mat khau -->
-    <section class="card">
-        <h2>Đổi mật khẩu</h2>
+        <div class="field">
+            <label for="phone">Số điện thoại</label>
+            <input id="phone"
+                   type="text"
+                   th:field="*{phone}"
+                   maxlength="20"
+                   th:classappend="${#fields.hasErrors('phone')} ? ' field-invalid'">
 
-        <form th:action="@{/profile/change-password}" method="post">
+            <p class="field-error"
+               th:if="${#fields.hasErrors('phone')}"
+               th:errors="*{phone}"></p>
+        </div>
 
-            <input type="hidden"
-                   th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
+        <div class="field">
+            <label>Vai trò</label>
+            <input type="text"
+                   readonly
+                   th:value="${user.role}">
+        </div>
 
-            <div class="field">
-                <label for="currentPassword">
-                    Mật khẩu hiện tại
-                </label>
-                <input id="currentPassword"
-                       name="currentPassword"
-                       type="password"
-                       autocomplete="current-password"
-                       required>
-            </div>
+        <button type="submit">Lưu thay đổi</button>
+    </form>
+</section>
 
-            <div class="field">
-                <label for="newPassword">Mật khẩu mới</label>
-                <input id="newPassword"
-                       name="newPassword"
-                       type="password"
-                       minlength="8"
-                       autocomplete="new-password"
-                       required>
-            </div>
+<!-- Doi mat khau -->
+<section class="card">
+    <h2>Đổi mật khẩu</h2>
 
-            <div class="field">
-                <label for="confirmPassword">
-                    Xác nhận mật khẩu mới
-                </label>
-                <input id="confirmPassword"
-                       name="confirmPassword"
-                       type="password"
-                       minlength="8"
-                       autocomplete="new-password"
-                       required>
-            </div>
+    <form th:action="@{/profile/change-password}" method="post"
+          th:object="${passwordForm}">
 
-            <button type="submit">Đổi mật khẩu</button>
-        </form>
-    </section>
+        <input type="hidden"
+               th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
 
-    <a class="back-link" th:href="@{/}">
-        ← Quay về trang chủ
-    </a>
+        <div class="field">
+            <label for="currentPassword">
+                Mật khẩu hiện tại
+            </label>
+            <input id="currentPassword"
+                   type="password"
+                   th:field="*{currentPassword}"
+                   autocomplete="current-password"
+                   required
+                   th:classappend="${#fields.hasErrors('currentPassword')} ? ' field-invalid'">
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('currentPassword')}"
+               th:errors="*{currentPassword}"></p>
+        </div>
+
+        <div class="field">
+            <label for="newPassword">Mật khẩu mới</label>
+            <input id="newPassword"
+                   type="password"
+                   th:field="*{newPassword}"
+                   minlength="8"
+                   maxlength="72"
+                   autocomplete="new-password"
+                   data-msg-short="Mật khẩu mới phải có từ 8 đến 72 ký tự."
+                   data-msg-long="Mật khẩu mới phải có từ 8 đến 72 ký tự."
+                   required
+                   th:classappend="${#fields.hasErrors('newPassword')} ? ' field-invalid'">
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('newPassword')}"
+               th:errors="*{newPassword}"></p>
+        </div>
+
+        <div class="field">
+            <label for="confirmPassword">
+                Xác nhận mật khẩu mới
+            </label>
+            <input id="confirmPassword"
+                   type="password"
+                   th:field="*{confirmPassword}"
+                   minlength="8"
+                   maxlength="72"
+                   autocomplete="new-password"
+                   data-match="newPassword"
+                   data-msg-required="Vui lòng xác nhận mật khẩu mới."
+                   data-msg-short="Mật khẩu xác nhận phải có từ 8 đến 72 ký tự."
+                   data-msg-long="Mật khẩu xác nhận phải có từ 8 đến 72 ký tự."
+                   data-msg-match="Mật khẩu xác nhận không khớp."
+                   required
+                   th:classappend="${#fields.hasErrors('confirmPassword')} ? ' field-invalid'">
+
+            <p class="field-error"
+               th:if="${#fields.hasErrors('confirmPassword')}"
+               th:errors="*{confirmPassword}"></p>
+        </div>
+
+        <button type="submit">Đổi mật khẩu</button>
+    </form>
+</section>
+
+<a class="back-link" th:href="@{/}">
+    ← Quay về trang chủ
+</a>
 
 </div>
+
 </body>
 </html>
-

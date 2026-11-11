@@ -2,7 +2,7 @@
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/AdminLayout}">
+      layout:decorate="~{${resultsLayout}}">
 <head>
     <title>Kết quả đánh giá - Japanese LMS</title>
     <link rel="stylesheet" th:href="@{/css/admin-assessment-results.css}">
@@ -13,26 +13,32 @@
 
         <!-- Tiêu đề trang -->
         <div class="results-header-section">
-            <span class="sub-header-title">KHU VỰC QUẢN TRỊ</span>
+            <span class="sub-header-title" th:text="${isAdmin ? 'KHU VỰC QUẢN TRỊ' : 'KHU VỰC GIẢNG VIÊN'}">KHU VỰC QUẢN TRỊ</span>
             <h1 class="page-main-title">S22 - Danh sách kết quả đánh giá</h1>
             <p class="welcome-text">
                 Theo dõi và quản lý điểm số, kết quả đánh giá bài tập của học viên trong hệ thống.
             </p>
         </div>
 
-        <!-- Bộ lọc kết quả theo khóa học (Dành cho Admin) -->
-        <div class="filter-card" th:if="${isAdmin}">
-            <form th:action="@{/admin/assessment-results}" method="get" class="filter-form">
+        <!-- Tìm kiếm / lọc kết quả -->
+        <div class="filter-card">
+            <form th:action="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}}"
+                  method="get" class="filter-form">
                 <div class="filter-group">
+                    <label for="keywordInput" class="filter-label">Tìm kiếm:</label>
+                    <input type="search" id="keywordInput" name="keyword" th:value="${keyword}" maxlength="100"
+                           placeholder="Học viên, email, khóa học, bài tập..." class="filter-input">
+                </div>
+                <div class="filter-group" th:if="${isAdmin}">
                     <label for="courseIdInput" class="filter-label">Lọc theo mã khóa học:</label>
                     <input type="number" min="1" id="courseIdInput" name="courseId" th:value="${courseId}"
                            placeholder="Nhập ID khóa học..." class="filter-input">
                 </div>
                 <div class="filter-actions">
                     <button type="submit" class="btn-filter-submit">
-                        <span>🔍</span> Lọc
+                        <span>🔍</span> Tìm
                     </button>
-                    <a th:href="@{/admin/assessment-results}" class="btn-filter-clear">
+                    <a th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}}" class="btn-filter-clear">
                         Xóa lọc
                     </a>
                 </div>
@@ -112,12 +118,12 @@
                 </div>
                 <div class="pagination-links">
                     <a th:if="${results.hasPrevious()}"
-                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number - 1}, courseId=${courseId})}"
+                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number - 1}, courseId=${courseId}, keyword=${keyword})}"
                        class="pagination-btn pagination-prev">
                         ← Trang trước
                     </a>
                     <a th:if="${results.hasNext()}"
-                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number + 1}, courseId=${courseId})}"
+                       th:href="@{${isAdmin ? '/admin/assessment-results' : '/instructor/assessment-results'}(page=${results.number + 1}, courseId=${courseId}, keyword=${keyword})}"
                        class="pagination-btn pagination-next">
                         Trang sau →
                     </a>

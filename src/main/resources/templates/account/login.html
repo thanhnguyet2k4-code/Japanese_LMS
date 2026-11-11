@@ -6,6 +6,7 @@
 
     <title>Đăng nhập - Japanese LMS</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/form-validation.js}" defer></script>
 </head>
 <body class="login-page">
 
@@ -36,6 +37,13 @@
              class="alert alert-error"
              role="alert">
             Email hoặc mật khẩu không đúng, hoặc tài khoản chưa đủ điều kiện đăng nhập. Vui lòng kiểm tra lại.
+        </div>
+
+        <!-- Thông báo sau khi đăng ký học viên (flash từ /register) -->
+        <div th:if="${successMessage}"
+             class="alert alert-success"
+             role="status"
+             th:text="${successMessage}">
         </div>
 
         <!-- Thông báo đăng xuất -->

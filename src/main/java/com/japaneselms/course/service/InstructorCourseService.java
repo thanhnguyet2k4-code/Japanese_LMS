@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -60,7 +61,7 @@ public class InstructorCourseService {
         Pageable safePageable = PageableUtils.sanitize(pageable, SORTABLE_PROPERTIES, DEFAULT_SORT);
 
         return courseRepository
-                .findByInstructor_UserId(instructorId, safePageable)
+                .findListedByInstructor(instructorId, safePageable)
                 .map(CourseSummaryDto::from);
     }
 
@@ -89,6 +90,25 @@ public class InstructorCourseService {
 
         Course savedCourse = courseRepository.save(course);
         return savedCourse.getCourseId();
+    }
+
+    /**
+     * Khóa học chờ: của chính mình và chưa có bài học nào.
+     */
+    @Transactional(readOnly = true)
+    public List<CourseSummaryDto> getWaitingCourses(Long instructorId) {
+        return courseRepository.findWaitingByInstructor(instructorId).stream()
+                .map(CourseSummaryDto::from)
+                .toList();
+    }
+
+    /**
+     * Khóa học của mình có đang ở trạng thái chờ (chưa có bài học) không.
+     */
+    @Transactional(readOnly = true)
+    public boolean isWaiting(Long courseId, Long instructorId) {
+        getOwnedCourse(courseId, instructorId);
+        return !lessonRepository.existsByCourse_CourseId(courseId);
     }
 
     // ===================== Luồng 3: xem + sửa khóa học =====================

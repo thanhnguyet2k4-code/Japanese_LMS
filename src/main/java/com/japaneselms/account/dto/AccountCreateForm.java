@@ -1,5 +1,4 @@
 package com.japaneselms.account.dto;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -11,12 +10,15 @@ public class AccountCreateForm {
     private String fullName;
 
     @NotBlank(message = "Vui lòng nhập địa chỉ email.")
-    @Email(message = "Email không đúng định dạng.")
+    @Pattern(
+            regexp = "^(\\s*|[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,})$",
+            message = "Email không đúng định dạng."
+    )
     @Size(max = 150, message = "Email không được vượt quá 150 ký tự.")
     private String email;
 
     @NotBlank(message = "Vui lòng nhập mật khẩu ban đầu.")
-    @Size(min = 8, message = "Mật khẩu phải chứa ít nhất 8 ký tự.")
+    @Size(min = 8, max = 72, message = "Mật khẩu phải có từ 8 đến 72 ký tự.")
     private String initialPassword;
 
     @NotBlank(message = "Vui lòng chọn vai trò.")
@@ -27,6 +29,10 @@ public class AccountCreateForm {
     private String role;
 
     @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự.")
+    @Pattern(
+            regexp = "^$|^\\+?(?=.*\\d)[0-9()\\s-]{1,20}$",
+            message = "Số điện thoại không đúng định dạng."
+    )
     private String phone;
 
     public String getFullName() {

@@ -1,1 +1,37 @@
-<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Japanese LMS</title><link rel="stylesheet" th:href="@{/css/style.css}"><style>body{font-family:Arial,sans-serif;background:#f5f7fb;color:#172238}main{max-width:1050px;margin:32px auto;padding:24px;background:white;border-radius:12px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #ddd;text-align:left;padding:12px}a{color:#1658a8}input,textarea,button,select{padding:9px;margin:5px 0}input,textarea{max-width:100%;box-sizing:border-box}button,.action{background:#1959ad;color:white;border:0;border-radius:5px;padding:9px 14px;cursor:pointer;text-decoration:none}.error{color:#b42318}.ok{color:green}.pagination{margin:18px 0} .muted{color:#667085}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body><div th:replace="~{fragments/navbar :: navbar}"></div><main><h1>Chi tiết kết quả đánh giá</h1><p><strong>Học viên:</strong> <span th:text="${submission.student.fullName}"></span></p><p><strong>Khóa học:</strong> <span th:text="${submission.assignment.course.courseName}"></span></p><p><strong>Bài tập:</strong> <span th:text="${submission.assignment.title}"></span></p><p><strong>Thời gian nộp:</strong> <span th:text="${#temporals.format(submission.submittedAt,'dd/MM/yyyy HH:mm')}"></span></p><p><strong>Điểm:</strong> <span th:text="${submission.grade == null ? 'Chưa chấm' : submission.grade}"></span></p><p><strong>Giảng viên chấm:</strong> <span th:text="${submission.gradedBy == null ? '-' : submission.gradedBy.fullName}"></span></p><p><strong>Ngày chấm:</strong> <span th:text="${submission.gradedAt == null ? '-' : #temporals.format(submission.gradedAt,'dd/MM/yyyy HH:mm')}"></span></p><h3>Nhận xét</h3><pre th:text="${submission.feedback == null || submission.feedback.isBlank() ? 'Chưa có nhận xét' : submission.feedback}"></pre><a th:href="@{/student/grades}" sec:authorize="hasRole('STUDENT')">Quay lại</a><a th:href="@{/instructor/results}" sec:authorize="hasRole('INSTRUCTOR')">Quay lại</a><a th:href="@{/admin/results}" sec:authorize="hasRole('ADMIN')">Quay lại</a></main><div th:replace="~{fragments/footer :: footer}"></div></body></html>
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{${resultsLayout}}">
+<head>
+    <title>Chi tiết kết quả đánh giá - Japanese LMS</title>
+</head>
+<body>
+<section layout:fragment="content" class="lesson-module">
+    <header class="page-header">
+        <h1 class="page-title">Chi tiết kết quả đánh giá</h1>
+    </header>
+
+    <div class="card">
+        <p><strong>Học viên:</strong> <span th:text="${submission.student.fullName}"></span></p>
+        <p><strong>Khóa học:</strong> <span th:text="${submission.assignment.course.courseName}"></span></p>
+        <p><strong>Bài tập:</strong> <span th:text="${submission.assignment.title}"></span></p>
+        <p><strong>Thời gian nộp:</strong> <span th:text="${#temporals.format(submission.submittedAt,'dd/MM/yyyy HH:mm')}"></span></p>
+        <p><strong>Điểm:</strong> <span th:text="${submission.grade == null ? 'Chưa chấm' : submission.grade}"></span></p>
+        <p><strong>Giảng viên chấm:</strong> <span th:text="${submission.gradedBy == null ? '-' : submission.gradedBy.fullName}"></span></p>
+        <p><strong>Ngày chấm:</strong> <span th:text="${submission.gradedAt == null ? '-' : #temporals.format(submission.gradedAt,'dd/MM/yyyy HH:mm')}"></span></p>
+
+        <h3>Nhận xét</h3>
+        <pre style="white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit;"
+             th:text="${submission.feedback == null || submission.feedback.isBlank() ? 'Chưa có nhận xét' : submission.feedback}"></pre>
+    </div>
+
+    <div class="lesson-toolbar">
+        <a class="btn btn-outline" th:href="@{/student/grades}" sec:authorize="hasRole('STUDENT')">Quay lại</a>
+        <a class="btn btn-outline" th:href="@{/instructor/results}" sec:authorize="hasRole('INSTRUCTOR')">Quay lại</a>
+        <a class="btn btn-outline" th:href="@{/admin/results}" sec:authorize="hasRole('ADMIN')">Quay lại</a>
+    </div>
+</section>
+</body>
+</html>

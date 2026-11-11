@@ -93,6 +93,7 @@ public class AssignmentStudentController {
         model.addAttribute("assignments", assignmentPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", assignmentPage.getTotalPages());
+        model.addAttribute("currentTab", "lessons");
         return "student/assignment-list";
     }
 
@@ -107,6 +108,7 @@ public class AssignmentStudentController {
 
         model.addAttribute("assignment", assignment);
         model.addAttribute("submission", submission);
+        model.addAttribute("currentTab", "lessons");
         return "student/assignment-detail";
     }
 
@@ -125,16 +127,21 @@ public class AssignmentStudentController {
 
         // Kiểm tra nếu đã nộp rồi thì không cho vào form nộp (BR-06)
         SubmissionResponse existingSubmission = submissionService.getStudentSubmission(assignmentId, studentId);
-        if (existingSubmission != null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Bạn đã nộp bài tập này rồi. Mỗi học viên chỉ được nộp bài đúng 1 lần.");
+        if (existingSubmission != null && !existingSubmission.isReopened()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn đã nộp bài này rồi. Bạn chỉ có thể nộp lại khi giảng viên mở lại bài tập.");
             return "redirect:/student/assignments/" + assignmentId;
         }
 
         SubmissionCreateRequest submitRequest = new SubmissionCreateRequest();
         submitRequest.setAssignmentId(assignmentId);
+        if (existingSubmission != null && existingSubmission.isReopened()) {
+            submitRequest.setResponseText(existingSubmission.getResponseText());
+            model.addAttribute("existingSubmission", existingSubmission);
+        }
 
         model.addAttribute("assignment", assignment);
         model.addAttribute("submissionForm", submitRequest);
+        model.addAttribute("currentTab", "lessons");
         return "student/assignment-submit";
     }
 
@@ -155,9 +162,14 @@ public class AssignmentStudentController {
             return "redirect:/student/assignments/" + assignmentId;
         } catch (Exception ex) {
             AssignmentResponse assignment = assignmentService.getAssignmentDetail(assignmentId, studentId);
+            SubmissionResponse existingSubmission = submissionService.getStudentSubmission(assignmentId, studentId);
             model.addAttribute("assignment", assignment);
             model.addAttribute("submissionForm", form);
+            if (existingSubmission != null && existingSubmission.isReopened()) {
+                model.addAttribute("existingSubmission", existingSubmission);
+            }
             model.addAttribute("errorMessage", ex.getMessage());
+            model.addAttribute("currentTab", "lessons");
             return "student/assignment-submit";
         }
     }

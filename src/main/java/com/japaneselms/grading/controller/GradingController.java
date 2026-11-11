@@ -60,6 +60,7 @@ public class GradingController {
         Page<Submission> results = service.instructorSubmissions(auth.getName(), status, service.page(page, 10));
         model.addAttribute("results", results);
         model.addAttribute("status", status);
+        model.addAttribute("currentTab", "grading");
         return "grading/instructor-list";
     }
 
@@ -72,6 +73,7 @@ public class GradingController {
         model.addAttribute("submission", submission);
         model.addAttribute("gradeForm", form);
         addNavigation(model, submission);
+        model.addAttribute("currentTab", "grading");
         return "grading/grade-form";
     }
 
@@ -83,6 +85,7 @@ public class GradingController {
             Submission current = service.gradingDetail(auth.getName(), id);
             model.addAttribute("submission", current);
             addNavigation(model, current);
+            model.addAttribute("currentTab", "grading");
             return "grading/grade-form";
         }
         service.saveGrade(auth.getName(), id, form);
@@ -93,26 +96,60 @@ public class GradingController {
     @GetMapping("/student/grades")
     public String myGrades(Authentication auth, @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("results", service.studentGrades(auth.getName(), service.page(page, 10)));
+        model.addAttribute("currentTab", "grades");
         return "grading/student-grades";
     }
 
     @GetMapping({"/admin/results", "/admin/assessment-results"})
     public String adminResults(Authentication auth, @RequestParam(required = false) Long courseId,
+                               @RequestParam(required = false) String keyword,
                                @RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("results", service.adminResults(auth.getName(), courseId, service.page(page, 10)));
+        List<Submission> all = new java.util.ArrayList<>();
+        Page<Submission> chunk;
+        int i = 0;
+        do {
+            chunk = service.adminResults(auth.getName(), courseId, service.page(i++, 50));
+            all.addAll(chunk.getContent());
+        } while (chunk.hasNext());
+        addResultsPage(model, all, keyword, page);
         model.addAttribute("courseId", courseId);
         model.addAttribute("isAdmin", true);
+        model.addAttribute("resultsLayout", "layout/AdminLayout");
         model.addAttribute("currentTab", "assessment-results");
         return "grading/assessment-results";
     }
 
     @GetMapping({"/instructor/results", "/instructor/assessment-results"})
-    public String instructorResults(Authentication auth, @RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("results", service.instructorSubmissions(auth.getName(), "graded", service.page(page, 10)));
+    public String instructorResults(Authentication auth, @RequestParam(required = false) String keyword,
+                                    @RequestParam(defaultValue = "0") int page, Model model) {
+        List<Submission> all = new java.util.ArrayList<>();
+        Page<Submission> chunk;
+        int i = 0;
+        do {
+            chunk = service.instructorSubmissions(auth.getName(), "graded", service.page(i++, 50));
+            all.addAll(chunk.getContent());
+        } while (chunk.hasNext());
+        addResultsPage(model, all, keyword, page);
         model.addAttribute("courseId", null);
         model.addAttribute("isAdmin", false);
+        model.addAttribute("resultsLayout", "layout/InstructorLayout");
         model.addAttribute("currentTab", "assessment-results");
         return "grading/assessment-results";
+    }
+
+    /** Lọc theo từ khóa (học viên, email, khóa học, bài tập) rồi phân trang 10 dòng / trang. */
+    private void addResultsPage(Model model, List<Submission> all, String keyword, int page) {
+        String kw = keyword == null ? "" : keyword.trim();
+        List<Submission> filtered = new java.util.ArrayList<>();
+        for (Submission s : all) {
+            String text = s.getStudent().getFullName() + " " + s.getStudent().getEmail() + " "
+                    + s.getAssignment().getCourse().getCourseName() + " " + s.getAssignment().getTitle();
+            if (com.japaneselms.common.ListPaging.containsKeyword(text, kw)) {
+                filtered.add(s);
+            }
+        }
+        model.addAttribute("results", com.japaneselms.common.ListPaging.paginate(filtered, page, 10));
+        model.addAttribute("keyword", kw);
     }
 
     @GetMapping({
@@ -124,6 +161,13 @@ public class GradingController {
     })
     public String resultDetail(Authentication auth, @PathVariable Long id, Model model) {
         model.addAttribute("submission", service.detail(auth.getName(), id));
+        boolean isStudent = auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_STUDENT".equals(a.getAuthority()));
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        model.addAttribute("currentTab", isStudent ? "grades" : "assessment-results");
+        model.addAttribute("resultsLayout", isAdmin ? "layout/AdminLayout"
+                : isStudent ? "layout/MainLayout" : "layout/InstructorLayout");
         return "grading/result-detail";
     }
 }

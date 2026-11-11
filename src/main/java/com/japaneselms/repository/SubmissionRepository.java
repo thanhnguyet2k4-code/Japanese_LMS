@@ -41,6 +41,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     // MF-04: Dem so bai nop cua Assignment.
     long countByAssignment_AssignmentId(Long assignmentId);
 
+    // MF-04: Lay toan bo bai nop cua Assignment (dung khi xoa Assignment).
+    List<Submission> findByAssignment_AssignmentId(Long assignmentId);
+
     // MF-04: Lay danh sach bai nop co phan trang.
     Page<Submission> findByAssignment_AssignmentId(
             Long assignmentId,

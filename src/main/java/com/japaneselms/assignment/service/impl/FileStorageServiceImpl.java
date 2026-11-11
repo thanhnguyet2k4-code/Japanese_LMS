@@ -100,4 +100,20 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new BusinessException("Đường dẫn file không hợp lệ: " + ex.getMessage());
         }
     }
+
+    @Override
+    public void deleteFile(String storagePath) {
+        if (storagePath == null || storagePath.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            Path filePath = Paths.get(storagePath).toAbsolutePath().normalize();
+            if (filePath.startsWith(this.fileStorageLocation)) {
+                Files.deleteIfExists(filePath);
+            }
+        } catch (Exception ex) {
+            // Nuốt lỗi khi xóa file để không ảnh hưởng luồng chính
+        }
+    }
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+    Thành phần dùng chung cho các trang danh sách thẻ khóa học.
+
+    1) Ảnh bìa có ảnh dự phòng (không bị vỡ ảnh nếu file không còn trên ổ đĩa):
+       <div th:replace="~{fragments/list-controls :: cover(${hasCover}, ${courseId}, ${version}, ${altText})}"></div>
+
+    2) Phân trang (chỉ hiện khi có > 1 trang). Cần các biến trong Model:
+       currentPage (từ 0), totalPages, totalElements, pageSize và (tùy chọn) keyword, level, status, sort.
+       <th:block th:replace="~{fragments/list-controls :: pager('/courses')}"></th:block>
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="cover(hasCover, courseId, version, altText)" class="card-cover">
+    <span class="card-cover-fallback" aria-hidden="true">日</span>
+    <img th:if="${hasCover}"
+         th:src="@{/files/course-images/{id}(id=${courseId}, v=${version})}"
+         th:alt="${altText}"
+         loading="lazy"
+         onerror="this.remove()">
+</div>
+
+<th:block th:fragment="pager(base)">
+    <nav class="list-pager" th:if="${totalPages != null and totalPages > 1}" aria-label="Phân trang">
+
+        <span class="list-pager-info">
+            Hiển thị
+            <strong th:text="${currentPage * pageSize + 1}">1</strong>–<strong
+                th:text="${(currentPage + 1) * pageSize < totalElements ? (currentPage + 1) * pageSize : totalElements}">9</strong>
+            / <strong th:text="${totalElements}">10</strong>
+            · Trang <strong th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">2</strong>
+        </span>
+
+        <div class="list-pager-links">
+            <a th:classappend="${currentPage == 0} ? 'disabled' : ''"
+               th:attr="aria-disabled=${currentPage == 0}"
+               th:href="@{${base}(keyword=${keyword}, level=${level}, status=${status}, sort=${sort}, page=${currentPage - 1})}">←
+                Trước</a>
+
+            <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <a th:if="${i == 0 or i == totalPages - 1 or (i >= currentPage - 2 and i <= currentPage + 2)}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == currentPage} ? 'current' : ''"
+                   th:attr="aria-current=${i == currentPage ? 'page' : null}"
+                   th:href="@{${base}(keyword=${keyword}, level=${level}, status=${status}, sort=${sort}, page=${i})}">1</a>
+                <span class="page-ellipsis"
+                      th:if="${(i == currentPage - 3 and i > 0) or (i == currentPage + 3 and i < totalPages - 1)}">…</span>
+            </th:block>
+
+            <a th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''"
+               th:attr="aria-disabled=${currentPage + 1 >= totalPages}"
+               th:href="@{${base}(keyword=${keyword}, level=${level}, status=${status}, sort=${sort}, page=${currentPage + 1})}">Sau
+                →</a>
+        </div>
+    </nav>
+</th:block>
+
+</body>
+</html>

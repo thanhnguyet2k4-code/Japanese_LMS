@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/StudentLayout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>S14 — Danh sách bài tập khóa học (Học viên)</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
-    <style>
-        :root {
-            --ink: #172b40;
-            --muted: #657789;
-            --line: #e2e9ee;
-            --accent: #087f77;
-            --accent-hover: #066c66;
-            --bg-page: #f4f8f9;
-        }
-        body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: var(--bg-page); }
-        .card-custom { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(23,43,64,0.04); }
-        .btn-teal { background-color: var(--accent); color: white; font-weight: 700; border-radius: 10px; padding: 7px 18px; border: none; transition: all .2s; }
-        .btn-teal:hover { background-color: var(--accent-hover); color: white; transform: translateY(-1px); }
-        .badge-status { font-weight: 700; font-size: 0.78rem; padding: 6px 12px; border-radius: 50px; }
-    </style>
+
+    <th:block layout:fragment="head">
+        <!-- Class kiểu Bootstrap được thu gọn & giới hạn trong .bs-compat (không đè lên layout) -->
+        <link rel="stylesheet" th:href="@{/css/bs-compat.css}">
+        <script th:src="@{/js/bs-compat.js}" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    </th:block>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
 
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<div layout:fragment="content" class="bs-compat">
 
-    <main class="container py-4 flex-grow-1" style="max-width: 1000px;">
+    <div class="container py-4" style="max-width: 1000px;">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb small">
@@ -94,10 +83,13 @@
                                 <span th:if="${asg.dueAt == null}" class="text-muted small">Không giới hạn</span>
                             </td>
                             <td>
-                                <span th:if="${asg.hasSubmitted}" class="badge badge-status bg-success-subtle text-success border border-success-subtle">
+                                <span th:if="${asg.canResubmit}" class="badge badge-status bg-info-subtle text-info border border-info-subtle">
+                                    <i data-lucide="rotate-ccw" style="width: 14px; height: 14px; vertical-align: middle;"></i> Được nộp lại
+                                </span>
+                                <span th:if="${!asg.canResubmit && asg.hasSubmitted}" class="badge badge-status bg-success-subtle text-success border border-success-subtle">
                                     <i data-lucide="check" style="width: 14px; height: 14px; vertical-align: middle;"></i> Đã nộp bài
                                 </span>
-                                <span th:unless="${asg.hasSubmitted}" class="badge badge-status bg-warning-subtle text-warning border border-warning-subtle">
+                                <span th:if="${!asg.hasSubmitted}" class="badge badge-status bg-warning-subtle text-warning border border-warning-subtle">
                                     Chưa nộp
                                 </span>
                             </td>
@@ -132,15 +124,16 @@
                 </nav>
             </div>
         </div>
-    </main>
+    </div>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if (window.lucide) {
             lucide.createIcons();
         }
+    
     </script>
+
+</div>
+
 </body>
 </html>

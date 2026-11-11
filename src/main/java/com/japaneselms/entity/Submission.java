@@ -62,6 +62,15 @@ public class Submission {
     @Column(name = "graded_at")
     private LocalDateTime gradedAt;
 
+    @Column(name = "reopened", columnDefinition = "bit default 0")
+    private Boolean reopened;
+
+    @Column(name = "reopened_at")
+    private LocalDateTime reopenedAt;
+
+    @Column(name = "resubmit_count")
+    private Integer resubmitCount;
+
     public Submission() {
     }
 
@@ -166,5 +175,33 @@ public class Submission {
 
     public void setGradedAt(LocalDateTime gradedAt) {
         this.gradedAt = gradedAt;
+    }
+
+    public boolean isReopened() {
+        return Boolean.TRUE.equals(reopened);
+    }
+
+    public Boolean getReopened() {
+        return reopened;
+    }
+
+    public void setReopened(Boolean reopened) {
+        this.reopened = reopened;
+    }
+
+    public LocalDateTime getReopenedAt() {
+        return reopenedAt;
+    }
+
+    public void setReopenedAt(LocalDateTime reopenedAt) {
+        this.reopenedAt = reopenedAt;
+    }
+
+    public int getResubmitCount() {
+        return resubmitCount != null ? resubmitCount : 0;
+    }
+
+    public void setResubmitCount(Integer resubmitCount) {
+        this.resubmitCount = resubmitCount;
     }
 }

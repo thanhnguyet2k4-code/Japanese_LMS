@@ -1,5 +1,6 @@
 package com.japaneselms.learning.controller;
 
+import com.japaneselms.common.ListPaging;
 import com.japaneselms.entity.Course;
 import com.japaneselms.entity.CourseSection;
 import com.japaneselms.entity.Lesson;
@@ -32,8 +33,14 @@ public class InstructorLessonController {
     @GetMapping("/instructor/lesson-courses")
     public String instructorHome(
             @AuthenticationPrincipal User currentUser,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String page,
             Model model) {
-        model.addAttribute("courses", lessonService.listInstructorCourses(currentUser));
+        ListPaging.populateInstructorCourses(model, lessonService.listInstructorCourses(currentUser),
+                keyword, level, status, sort, page);
         model.addAttribute("currentTab", "lessons");
         return "instructor/courses";
     }

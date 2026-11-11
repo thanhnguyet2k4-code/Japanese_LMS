@@ -2,6 +2,7 @@
 package com.japaneselms.account.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class ProfileUpdateForm {
@@ -11,6 +12,10 @@ public class ProfileUpdateForm {
     private String fullName;
 
     @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự.")
+    @Pattern(
+            regexp = "^$|^\\+?(?=.*\\d)[0-9()\\s-]{1,20}$",
+            message = "Số điện thoại không đúng định dạng."
+    )
     private String phone;
 
     public String getFullName() {

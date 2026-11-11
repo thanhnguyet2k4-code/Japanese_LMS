@@ -260,14 +260,14 @@ body.course-page .page-heading , .admin-layout-page .course-page .page-heading {
 body.course-page .field-error , .admin-layout-page .course-page .field-error {
     display: block;
     margin-top: 5px;
-    color: var(--danger);
+    color: #c53030;
     font-size: 13px;
 }
 
 body.course-page .has-error input, .admin-layout-page .course-page .has-error input,
 body.course-page .has-error select, .admin-layout-page .course-page .has-error select,
 body.course-page .has-error textarea , .admin-layout-page .course-page .has-error textarea {
-    border-color: var(--danger);
+    border-color: #c53030;
 }
 
 body.course-page .form-actions , .admin-layout-page .course-page .form-actions {

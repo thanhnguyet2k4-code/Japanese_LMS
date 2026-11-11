@@ -22,6 +22,8 @@ public interface AssignmentService {
 
     void activateAssignment(Long assignmentId, Long currentUserId);
 
+    void deleteAssignment(Long assignmentId, Long currentUserId);
+
     Page<AssignmentResponse> getAssignmentsByCourseForInstructor(
             Long courseId,
             String keyword,

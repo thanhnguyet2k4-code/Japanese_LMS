@@ -1,7 +1,6 @@
 
 package com.japaneselms.account.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -13,7 +12,10 @@ public class RegisterRequest {
     private String fullName;
 
     @NotBlank(message = "Vui lòng nhập email.")
-    @Email(message = "Email không đúng định dạng.")
+    @Pattern(
+            regexp = "^(\\s*|[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,})$",
+            message = "Email không đúng định dạng."
+    )
     @Size(max = 255, message = "Email không được vượt quá 255 ký tự.")
     private String email;
 

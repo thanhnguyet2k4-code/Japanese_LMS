@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/InstructorLayout}">
+
+<head>
+    <title>Khóa học chờ</title>
+
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/course.css}">
+    </th:block>
+</head>
+
+<body>
+
+<section layout:fragment="content" class="course-page">
+
+    <div class="alert alert-success"
+         th:if="${successMessage != null}"
+         th:text="${successMessage}">
+    </div>
+
+    <div class="alert alert-danger"
+         th:if="${errorMessage != null}"
+         th:text="${errorMessage}">
+    </div>
+
+    <div class="page-heading">
+        <header>
+            <h1 class="page-title">Khóa học chờ</h1>
+            <p class="page-subtitle">
+                Các khóa học chưa có bài học nào. Học viên chưa nhìn thấy hay đăng ký được
+                những khóa này. Thêm ít nhất một bài học để khóa học được mở.
+            </p>
+        </header>
+
+        <a th:href="@{/instructor/courses/new}" class="btn btn-primary">
+            + Tạo khóa học mới
+        </a>
+    </div>
+
+    <!-- Tìm kiếm / lọc / sắp xếp -->
+    <section class="card" style="margin-bottom: 22px;" th:if="${totalAll > 0}">
+        <form class="list-toolbar" style="margin-bottom: 0;" th:action="@{/instructor/courses/waiting}" method="get" role="search">
+            <div class="form-group grow">
+                <label class="form-label" for="keyword">Tìm theo tên khóa học</label>
+                <input id="keyword" type="search" name="keyword" maxlength="100"
+                       placeholder="Nhập tên khóa học..." th:value="${keyword}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="level">Cấp độ JLPT</label>
+                <select id="level" name="level">
+                    <option value="">Tất cả cấp độ</option>
+                    <option th:each="lv : ${levels}"
+                            th:value="${lv.name()}"
+                            th:text="${lv.name()}"
+                            th:selected="${lv.name() == level}">N5
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sort">Sắp xếp</label>
+                <select id="sort" name="sort">
+                    <option value="createdAt,desc" th:selected="${sort == 'createdAt,desc'}">Mới nhất</option>
+                    <option value="createdAt,asc" th:selected="${sort == 'createdAt,asc'}">Cũ nhất</option>
+                    <option value="courseName,asc" th:selected="${sort == 'courseName,asc'}">Tên A → Z</option>
+                    <option value="courseName,desc" th:selected="${sort == 'courseName,desc'}">Tên Z → A</option>
+                </select>
+            </div>
+
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a th:href="@{/instructor/courses/waiting}" class="btn btn-outline">Đặt lại</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+
+        <div class="table-wrapper" th:if="${!courses.isEmpty()}">
+            <table>
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên khóa học</th>
+                    <th>Cấp độ</th>
+                    <th>Ngày tạo</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c, stat : ${courses}">
+                    <td th:text="${currentPage * pageSize + stat.count}">1</td>
+                    <td th:text="${c.courseName}">Tên khóa học</td>
+                    <td><span class="level-badge" th:text="${c.jlptLevel}">N5</span></td>
+                    <td th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td class="cell-actions">
+                        <a class="btn btn-primary btn-sm"
+                           th:href="@{/instructor/courses/{id}/lessons(id=${c.courseId})}">
+                            Quản lý bài học
+                        </a>
+
+                        <a class="btn btn-outline btn-sm"
+                           th:href="@{/instructor/courses/{id}/edit(id=${c.courseId})}">
+                            Sửa
+                        </a>
+
+                        <form class="inline-form"
+                              th:action="@{/instructor/courses/{id}/delete(id=${c.courseId}, from='waiting')}"
+                              method="post"
+                              onsubmit="return confirm('Xóa vĩnh viễn khóa học này? Hành động không thể hoàn tác.');">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                Xóa khóa học
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${courses.isEmpty() and totalAll == 0}">
+            <p>Không có khóa học nào đang chờ. Tất cả khóa học của bạn đã có bài học.</p>
+        </div>
+
+        <div class="empty-state" th:if="${courses.isEmpty() and totalAll > 0}">
+            <p>Không tìm thấy khóa học chờ phù hợp. Hãy thử từ khóa hoặc cấp độ khác.</p>
+            <a th:href="@{/instructor/courses/waiting}" class="btn btn-outline">Xóa bộ lọc</a>
+        </div>
+
+    </section>
+
+    <th:block th:replace="~{fragments/list-controls :: pager('/instructor/courses/waiting')}"></th:block>
+
+</section>
+
+</body>
+</html>
